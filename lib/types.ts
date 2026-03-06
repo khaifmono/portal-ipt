@@ -44,3 +44,40 @@ export interface Enrollment {
   ipt_id: string
   enrolled_at: string
 }
+
+export interface Quiz {
+  id: string
+  course_id: string
+  week_id: string
+  ipt_id: string
+  title: string
+  description: string | null
+  timer_minutes: number | null
+  randomize_questions: boolean
+  created_by: string
+  created_at: string
+}
+
+export interface QuizQuestion {
+  id: string
+  quiz_id: string
+  ipt_id: string
+  question_text: string
+  question_type: 'multiple_choice' | 'true_false' | 'short_answer'
+  options: string[] | null
+  correct_answer: string | null
+  marks: number
+  order_index: number
+}
+
+export interface QuizAttempt {
+  id: string
+  quiz_id: string
+  user_id: string
+  ipt_id: string
+  started_at: string
+  submitted_at: string | null
+  answers: Record<string, string> | null
+  score: number | null
+  status: 'in_progress' | 'submitted'
+}
