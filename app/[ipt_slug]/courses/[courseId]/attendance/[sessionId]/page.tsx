@@ -47,7 +47,8 @@ export default async function SessionDetailPage({
   const recordMap = new Map(records.map((r) => [r.user_id, r]))
 
   const enrolledUsers = (enrollments ?? []).map((e) => {
-    const u = e.users as { id: string; nama: string; ic_number: string } | null
+    const uArr = e.users as unknown as { id: string; nama: string; ic_number: string }[] | null
+    const u = Array.isArray(uArr) ? uArr[0] ?? null : null
     return {
       userId: e.user_id,
       nama: u?.nama ?? 'Tanpa Nama',

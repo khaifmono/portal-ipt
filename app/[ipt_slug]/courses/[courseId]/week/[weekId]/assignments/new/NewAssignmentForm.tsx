@@ -10,7 +10,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   type: z.enum(['file_upload', 'text']),
   due_date: z.string().optional(),
-  max_score: z.coerce.number().int().min(1).max(1000).optional(),
+  max_score: z.number().int().min(1).max(1000).optional(),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -133,7 +133,7 @@ export default function NewAssignmentForm({ iptSlug, courseId, weekId }: Props) 
           type="number"
           min={1}
           max={1000}
-          {...register('max_score')}
+          {...register('max_score', { valueAsNumber: true })}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {errors.max_score && (

@@ -5,9 +5,7 @@ import type { Assignment } from '@/lib/types'
 export const assignmentSchema = z.object({
   title: z.string().min(1, 'Tajuk tugasan diperlukan'),
   description: z.string().optional(),
-  type: z.enum(['file_upload', 'text'], {
-    errorMap: () => ({ message: "Jenis mesti 'file_upload' atau 'text'" }),
-  }),
+  type: z.enum(['file_upload', 'text'] as const),
   dueDate: z
     .date()
     .refine((d) => d > new Date(), { message: 'Tarikh akhir mesti pada masa hadapan' })

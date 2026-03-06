@@ -13,7 +13,7 @@ const newScheduleSchema = z
     start_time: z.string().min(1, 'Masa mula diperlukan'),
     end_time: z.string().min(1, 'Masa tamat diperlukan'),
     location: z.string().optional(),
-    recurring: z.boolean().default(false),
+    recurring: z.boolean(),
   })
   .refine((data) => new Date(data.start_time) < new Date(data.end_time), {
     message: 'Masa mula mesti sebelum masa tamat',

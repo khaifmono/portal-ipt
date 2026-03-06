@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { loginSchema } from '@/lib/auth'
+import { loginSchema } from '@/lib/auth-schema'
 
 describe('loginSchema', () => {
   it('rejects empty IC number', () => {

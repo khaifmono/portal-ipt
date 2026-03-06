@@ -11,19 +11,14 @@ const questionSchema = z.object({
   question_type: z.enum(['multiple_choice', 'true_false', 'short_answer']),
   options: z.array(z.string()).optional(),
   correct_answer: z.string().optional(),
-  marks: z.coerce.number().int().min(1, 'Markah mesti sekurang-kurangnya 1').default(1),
+  marks: z.number().int().min(1, 'Markah mesti sekurang-kurangnya 1'),
 })
 
 const formSchema = z.object({
   title: z.string().min(1, 'Tajuk kuiz diperlukan'),
   description: z.string().optional(),
-  timer_minutes: z.coerce
-    .number()
-    .int('Timer mesti integer')
-    .positive('Timer mesti positif')
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  randomize_questions: z.boolean().default(false),
+  timer_minutes: z.number().int('Timer mesti integer').positive('Timer mesti positif').optional(),
+  randomize_questions: z.boolean(),
   questions: z.array(questionSchema).min(1, 'Sekurang-kurangnya satu soalan diperlukan'),
 })
 
@@ -165,7 +160,7 @@ export default function NewQuizForm({ iptSlug, courseId, weekId }: NewQuizFormPr
               Masa (minit)
             </label>
             <input
-              {...register('timer_minutes')}
+              {...register('timer_minutes', { setValueAs: (v) => v === '' || v == null ? undefined : Number(v) })}
               type="number"
               min={1}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -279,7 +274,7 @@ export default function NewQuizForm({ iptSlug, courseId, weekId }: NewQuizFormPr
                       Markah
                     </label>
                     <input
-                      {...register(`questions.${index}.marks`)}
+                      {...register(`questions.${index}.marks`, { valueAsNumber: true })}
                       type="number"
                       min={1}
                       className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

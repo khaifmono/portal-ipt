@@ -8,7 +8,7 @@ const PROTECTED_ROUTES: { pattern: RegExp; roles: string[] }[] = [
   { pattern: /^\/[^/]+\/courses/, roles: ['admin', 'super_admin', 'tenaga_pengajar', 'ahli'] },
 ]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request)
   const path = request.nextUrl.pathname
 

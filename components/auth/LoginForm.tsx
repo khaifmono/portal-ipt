@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { loginSchema, type LoginInput } from '@/lib/auth'
+import { loginSchema, type LoginInput } from '@/lib/auth-schema'
 import { createClient } from '@/lib/supabase/client'
 
 interface LoginFormProps {
