@@ -1,0 +1,56 @@
+import { getIptBySlug } from '@/lib/ipt'
+import { getCourseById } from '@/lib/courses'
+import { getUser } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
+import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
+import { NewSessionForm } from './NewSessionForm'
+
+export default async function NewAttendanceSessionPage({
+  params,
+}: {
+  params: Promise<{ ipt_slug: string; courseId: string }>
+}) {
+  const { ipt_slug, courseId } = await params
+  const ipt = await getIptBySlug(ipt_slug)
+  if (!ipt) notFound()
+
+  const user = await getUser()
+  if (!user) redirect(`/${ipt_slug}/login`)
+
+  const supabase = await createClient()
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['admin', 'super_admin', 'tenaga_pengajar'].includes(profile.role)) {
+    redirect(`/${ipt_slug}/courses/${courseId}/attendance`)
+  }
+
+  const course = await getCourseById(courseId)
+  if (!course || course.ipt_id !== ipt.id) notFound()
+
+  return (
+    <main className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-lg mx-auto">
+        <Link
+          href={`/${ipt_slug}/courses/${courseId}/attendance`}
+          className="text-sm text-blue-600 hover:underline mb-4 block"
+        >
+          ← Kembali ke Kehadiran
+        </Link>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h1 className="text-xl font-bold text-gray-900 mb-6">Cipta Sesi Kehadiran</h1>
+          <NewSessionForm
+            courseId={courseId}
+            iptId={ipt.id}
+            iptSlug={ipt_slug}
+            createdBy={user.id}
+          />
+        </div>
+      </div>
+    </main>
+  )
+}

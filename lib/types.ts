@@ -44,3 +44,35 @@ export interface Enrollment {
   ipt_id: string
   enrolled_at: string
 }
+
+export interface AttendanceSession {
+  id: string
+  course_id: string
+  ipt_id: string
+  session_date: string
+  title: string
+  created_by: string
+  created_at: string
+}
+
+export interface AttendanceRecord {
+  id: string
+  session_id: string
+  user_id: string
+  ipt_id: string
+  status: 'present' | 'absent'
+  marked_at: string
+}
+
+export interface Schedule {
+  id: string
+  course_id: string
+  ipt_id: string
+  title: string
+  start_time: string
+  end_time: string
+  location: string | null
+  recurring: boolean
+  created_by: string
+  created_at: string
+}
