@@ -3,6 +3,7 @@ import { getCourseById } from '@/lib/courses'
 import { getUser } from '@/lib/auth'
 import { getQuizById, getQuestionsByQuiz } from '@/lib/quizzes'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import QuizPlayer from './QuizPlayer'
@@ -28,7 +29,7 @@ export default async function QuizPage({
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: week, error: weekError } = await supabase
     .from('course_weeks')

@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Quiz, QuizQuestion } from '@/lib/types'
 
 export async function getQuizzesByWeek(weekId: string): Promise<Quiz[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('quizzes')
     .select('*')
@@ -14,7 +14,7 @@ export async function getQuizzesByWeek(weekId: string): Promise<Quiz[]> {
 }
 
 export async function getQuizById(quizId: string): Promise<Quiz | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('quizzes')
     .select('*')
@@ -43,7 +43,7 @@ export async function createQuiz(params: {
     throw new Error('timerMinutes mesti integer positif')
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('quizzes')
     .insert({
@@ -80,7 +80,7 @@ export async function addQuestion(params: {
     throw new Error('Soalan pilihan berganda memerlukan sekurang-kurangnya 2 pilihan')
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('quiz_questions')
     .insert({
@@ -101,7 +101,7 @@ export async function addQuestion(params: {
 }
 
 export async function getQuestionsByQuiz(quizId: string): Promise<QuizQuestion[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('quiz_questions')
     .select('*')

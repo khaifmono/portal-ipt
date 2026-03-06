@@ -42,7 +42,7 @@ export function NewCourseForm({ iptId, iptSlug, userId }: NewCourseFormProps) {
       return
     }
 
-    router.push(`/${iptSlug}/admin/courses`)
+    router.push(`/${iptSlug}/dashboard`)
     router.refresh()
   }
 
@@ -53,7 +53,7 @@ export function NewCourseForm({ iptId, iptSlug, userId }: NewCourseFormProps) {
         <input
           type="text"
           {...register('title')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
         />
         {errors.title && <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>}
       </div>
@@ -63,7 +63,7 @@ export function NewCourseForm({ iptId, iptSlug, userId }: NewCourseFormProps) {
         <textarea
           rows={3}
           {...register('description')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
         />
       </div>
 

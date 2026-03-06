@@ -4,6 +4,7 @@ import { getIptBySlug } from '@/lib/ipt'
 import { getQuizById, getQuestionsByQuiz, shuffleQuestions } from '@/lib/quizzes'
 import { startAttempt } from '@/lib/quiz-attempt'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(
   _request: NextRequest,
@@ -23,7 +24,7 @@ export async function POST(
     }
 
     // Verify user belongs to this IPT
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data: dbUser, error: userError } = await supabase
       .from('users')
       .select('role')

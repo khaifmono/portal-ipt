@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getIptBySlug } from '@/lib/ipt'
+import AppNavbar from '@/components/layout/AppNavbar'
 
 export default async function IptLayout({
   children,
@@ -13,5 +14,12 @@ export default async function IptLayout({
 
   if (!ipt) notFound()
 
-  return <>{children}</>
+  return (
+    <>
+      <AppNavbar iptSlug={ipt_slug} iptName={ipt.name} iptLogoUrl={ipt.logo_url} />
+      <div className="pt-16 min-h-screen bg-[#f0f2f5]">
+        {children}
+      </div>
+    </>
+  )
 }

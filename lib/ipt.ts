@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Ipt } from '@/lib/types'
 
 export async function getAllIpts(): Promise<Ipt[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('ipts')
     .select('*')
@@ -18,7 +18,7 @@ export async function getAllIpts(): Promise<Ipt[]> {
 }
 
 export async function getIptBySlug(slug: string): Promise<Ipt | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('ipts')
     .select('*')

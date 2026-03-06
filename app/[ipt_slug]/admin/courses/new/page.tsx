@@ -1,7 +1,9 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
 import { NewCourseForm } from './NewCourseForm'
 
 export default async function NewCoursePage({
@@ -16,21 +18,32 @@ export default async function NewCoursePage({
   const user = await getUser()
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
     redirect(`/${ipt_slug}/dashboard`)
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Cipta Kursus</h1>
-        <p className="text-sm text-gray-500 mb-8">{ipt.name}</p>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="max-w-xl mx-auto px-4 lg:px-8 py-8">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <Link href={`/${ipt_slug}/dashboard`} className="hover:text-blue-600 transition-colors">Dashboard</Link>
+        <span>/</span>
+        <Link href={`/${ipt_slug}/admin/courses`} className="hover:text-blue-600 transition-colors">Urus Kursus</Link>
+        <span>/</span>
+        <span className="text-gray-800 font-medium">Kursus Baru</span>
+      </nav>
+
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+          <h1 className="text-lg font-bold text-white">Cipta Kursus Baru</h1>
+          <p className="text-blue-200 text-sm mt-0.5">{ipt.name}</p>
+        </div>
+        <div className="p-6">
           <NewCourseForm iptId={ipt.id} iptSlug={ipt_slug} userId={user.id} />
         </div>
       </div>
-    </main>
+    </div>
   )
 }

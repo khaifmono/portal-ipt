@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Course, CourseWeek } from '@/lib/types'
 
 export async function getCoursesByIpt(iptId: string): Promise<Course[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('courses')
     .select('*')
@@ -14,7 +14,7 @@ export async function getCoursesByIpt(iptId: string): Promise<Course[]> {
 }
 
 export async function getCourseById(courseId: string): Promise<Course | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('courses')
     .select('*')
@@ -34,7 +34,7 @@ export async function createCourse(params: {
 }): Promise<Course> {
   if (!params.iptId) throw new Error('ipt_id diperlukan untuk mencipta kursus')
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('courses')
     .insert({
@@ -51,7 +51,7 @@ export async function createCourse(params: {
 }
 
 export async function getWeeksByCourse(courseId: string): Promise<CourseWeek[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('course_weeks')
     .select('*')
@@ -68,7 +68,7 @@ export async function addWeekToCourse(params: {
   title: string
   description?: string
 }): Promise<CourseWeek> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Determine next week number
   const { data: existing, error: countError } = await supabase

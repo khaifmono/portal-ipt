@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Schedule } from '@/lib/types'
 
 export async function createSchedule(params: {
@@ -19,7 +19,7 @@ export async function createSchedule(params: {
     throw new Error('Masa mula mesti sebelum masa tamat')
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('schedules')
     .insert({
@@ -40,7 +40,7 @@ export async function createSchedule(params: {
 }
 
 export async function getSchedulesByCourse(courseId: string): Promise<Schedule[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('schedules')
     .select('*')
@@ -52,7 +52,7 @@ export async function getSchedulesByCourse(courseId: string): Promise<Schedule[]
 }
 
 export async function getSchedulesByIpt(iptId: string): Promise<Schedule[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('schedules')
     .select('*')

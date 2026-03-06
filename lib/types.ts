@@ -5,6 +5,7 @@ export interface Ipt {
   name: string
   slug: string
   is_active: boolean
+  logo_url: string | null
   created_at: string
 }
 

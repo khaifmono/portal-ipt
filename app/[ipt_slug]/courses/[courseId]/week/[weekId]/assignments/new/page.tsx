@@ -4,6 +4,7 @@ import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
 import { getUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import NewAssignmentForm from './NewAssignmentForm'
 
 export default async function NewAssignmentPage({
@@ -27,7 +28,7 @@ export default async function NewAssignmentPage({
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: week, error } = await supabase
     .from('course_weeks')
     .select('*')

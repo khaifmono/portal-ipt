@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Assignment } from '@/lib/types'
 
 export const assignmentSchema = z.object({
@@ -16,7 +16,7 @@ export const assignmentSchema = z.object({
 export type AssignmentInput = z.infer<typeof assignmentSchema>
 
 export async function getAssignmentsByWeek(weekId: string): Promise<Assignment[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('assignments')
     .select('*')
@@ -40,7 +40,7 @@ export async function createAssignment(params: {
 }): Promise<Assignment> {
   if (!params.iptId) throw new Error('ipt_id diperlukan untuk mencipta tugasan')
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('assignments')
     .insert({

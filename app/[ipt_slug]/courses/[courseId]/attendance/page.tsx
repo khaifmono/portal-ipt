@@ -3,6 +3,7 @@ import { getCourseById } from '@/lib/courses'
 import { getUser } from '@/lib/auth'
 import { getSessionsByCourse, getUserAttendanceHistory } from '@/lib/attendance'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -18,7 +19,7 @@ export default async function AttendancePage({
   const user = await getUser()
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: profile } = await supabase
     .from('users')
     .select('role')

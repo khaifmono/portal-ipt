@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createQuiz, addQuestion } from '@/lib/quizzes'
 import { getUser } from '@/lib/auth'
 import { getIptBySlug } from '@/lib/ipt'
@@ -22,7 +23,7 @@ export async function POST(
     }
 
     // Check role
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data: dbUser, error: userError } = await supabase
       .from('users')
       .select('role')

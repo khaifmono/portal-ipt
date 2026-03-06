@@ -1,6 +1,7 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound, redirect } from 'next/navigation'
 import { NewUserForm } from './NewUserForm'
 
@@ -16,7 +17,7 @@ export default async function NewUserPage({
   const user = await getUser()
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
     redirect(`/${ipt_slug}/dashboard`)

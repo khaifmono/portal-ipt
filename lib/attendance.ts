@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { AttendanceSession, AttendanceRecord } from '@/lib/types'
 
 export async function createSession(params: {
@@ -8,7 +8,7 @@ export async function createSession(params: {
   title: string
   createdBy: string
 }): Promise<AttendanceSession> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('attendance_sessions')
     .insert({
@@ -26,7 +26,7 @@ export async function createSession(params: {
 }
 
 export async function getSessionsByCourse(courseId: string): Promise<AttendanceSession[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('attendance_sessions')
     .select('*')
@@ -38,7 +38,7 @@ export async function getSessionsByCourse(courseId: string): Promise<AttendanceS
 }
 
 export async function getSessionById(sessionId: string): Promise<AttendanceSession | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('attendance_sessions')
     .select('*')
@@ -56,7 +56,7 @@ export async function markAttendance(params: {
   iptId: string
   status: 'present' | 'absent'
 }): Promise<AttendanceRecord> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('attendance_records')
     .insert({
@@ -78,7 +78,7 @@ export async function markAttendance(params: {
 }
 
 export async function getAttendanceReport(sessionId: string): Promise<AttendanceRecord[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('attendance_records')
     .select('*')
@@ -92,7 +92,7 @@ export async function getUserAttendanceHistory(
   userId: string,
   courseId: string
 ): Promise<(AttendanceRecord & { session: AttendanceSession })[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('attendance_records')
     .select('*, session:attendance_sessions(*)')

@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { User } from '@/lib/types'
 
 export async function getUsersByIpt(iptId: string): Promise<User[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -22,7 +22,7 @@ export async function createUser(params: {
   password: string
   iptSlug: string
 }): Promise<User> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Create auth user with synthetic email
   const email = `${params.icNumber}@${params.iptSlug}.psscm`

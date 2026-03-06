@@ -6,6 +6,7 @@ import { getUser } from '@/lib/auth'
 import { getAssignmentsByWeek } from '@/lib/assignments'
 import { getSubmissionsByAssignment, getSubmissionByUser } from '@/lib/submissions'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Assignment, Submission } from '@/lib/types'
 import SubmissionForm from './SubmissionForm'
 
@@ -30,7 +31,7 @@ export default async function AssignmentPage({
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: week, error: weekError } = await supabase
     .from('course_weeks')
     .select('*')
