@@ -11,7 +11,12 @@ export default async function Home() {
         <p className="text-gray-600 mb-8">Persatuan Seni Silat Cekak Malaysia</p>
 
         {ipts.length === 0 ? (
-          <p className="text-gray-500">Tiada portal IPT aktif pada masa ini.</p>
+          <div className="rounded-lg border border-dashed border-gray-300 bg-white px-6 py-8 text-center">
+            <p className="text-gray-500 text-sm">Tiada portal IPT aktif pada masa ini.</p>
+            <p className="text-gray-400 text-xs mt-2">
+              Pastikan migrasi pangkalan data telah dijalankan dan IPT telah didaftarkan.
+            </p>
+          </div>
         ) : (
           <ul className="space-y-3">
             {ipts.map((ipt) => (

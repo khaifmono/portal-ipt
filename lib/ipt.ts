@@ -9,7 +9,10 @@ export async function getAllIpts(): Promise<Ipt[]> {
     .eq('is_active', true)
     .order('name')
 
-  if (error) throw error
+  if (error) {
+    console.error('[getAllIpts]', error.message)
+    return []
+  }
   return data ?? []
 }
 
