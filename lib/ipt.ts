@@ -10,7 +10,8 @@ export async function getAllIpts(): Promise<Ipt[]> {
     .order('name')
 
   if (error) {
-    console.error('[getAllIpts]', error.message)
+    // Silently return empty list before migrations are applied (table not found = code 42P01)
+    if (error.code !== '42P01') console.warn('[getAllIpts]', error.message)
     return []
   }
   return data ?? []
