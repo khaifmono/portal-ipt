@@ -2,6 +2,7 @@ import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth'
+import { getAssignmentsByWeek } from '@/lib/assignments'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -30,6 +31,11 @@ export default async function WeekPage({
 
   if (error || !week) notFound()
 
+  const assignments = await getAssignmentsByWeek(weekId)
+
+  const role = user.user_metadata?.role as string | undefined
+  const isStaff = role && ['admin', 'super_admin', 'tenaga_pengajar'].includes(role)
+
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -46,7 +52,7 @@ export default async function WeekPage({
           {week.description && <p className="text-gray-600 mt-2">{week.description}</p>}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="font-medium text-gray-900 mb-1">Bahan Pembelajaran</div>
             <p className="text-sm text-gray-500">PDF, video, pautan Google Drive / YouTube</p>
@@ -59,6 +65,69 @@ export default async function WeekPage({
             <div className="font-medium text-gray-900 mb-1">Kuiz</div>
             <p className="text-sm text-gray-500">Pelbagai jenis soalan dengan pemasaan</p>
           </div>
+        </div>
+
+        {/* Assignments section */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Tugasan</h2>
+            {isStaff && (
+              <Link
+                href={`/${ipt_slug}/courses/${courseId}/week/${weekId}/assignments/new`}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                + Tugasan Baru
+              </Link>
+            )}
+          </div>
+
+          {assignments.length === 0 ? (
+            <p className="text-sm text-gray-500">Tiada tugasan untuk minggu ini.</p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {assignments.map((asgn) => {
+                const isPastDue =
+                  asgn.due_date ? new Date() > new Date(asgn.due_date) : false
+                return (
+                  <li key={asgn.id} className="py-3">
+                    <Link
+                      href={`/${ipt_slug}/courses/${courseId}/week/${weekId}/assignments/${asgn.id}`}
+                      className="flex items-start justify-between gap-4 group"
+                    >
+                      <div>
+                        <span className="font-medium text-gray-900 group-hover:text-blue-600">
+                          {asgn.title}
+                        </span>
+                        {asgn.description && (
+                          <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
+                            {asgn.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-gray-400">
+                            {asgn.type === 'file_upload' ? 'Muat Naik Fail' : 'Jawapan Teks'}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            Markah Penuh: {asgn.max_score}
+                          </span>
+                        </div>
+                      </div>
+                      {asgn.due_date && (
+                        <span
+                          className={`text-xs font-medium whitespace-nowrap mt-0.5 ${
+                            isPastDue ? 'text-red-500' : 'text-green-700'
+                          }`}
+                        >
+                          {isPastDue ? 'Tamat: ' : 'Tarikh Akhir: '}
+                          {new Date(asgn.due_date).toLocaleDateString('ms-MY')}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </main>

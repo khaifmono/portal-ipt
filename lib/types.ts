@@ -44,3 +44,31 @@ export interface Enrollment {
   ipt_id: string
   enrolled_at: string
 }
+
+export interface Assignment {
+  id: string
+  course_id: string
+  week_id: string
+  ipt_id: string
+  title: string
+  description: string | null
+  type: 'file_upload' | 'text'
+  due_date: string | null
+  max_score: number
+  created_by: string
+  created_at: string
+}
+
+export interface Submission {
+  id: string
+  assignment_id: string
+  user_id: string
+  ipt_id: string
+  content_text: string | null
+  file_path: string | null
+  submitted_at: string
+  grade: number | null
+  feedback: string | null
+  graded_by: string | null
+  graded_at: string | null
+}
