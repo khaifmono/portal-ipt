@@ -136,7 +136,7 @@ export function IptBoard({ ipts }: { ipts: IptData[] }) {
 
                 {/* Actions */}
                 <td className="px-6 py-4">
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-1">
                     <Link href={`/admin/ipts/${ipt.id}/edit`} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">Edit</Link>
                     <Link href={`/admin/ipts/${ipt.id}/admins`} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors">Pentadbir</Link>
                     <ToggleIptButton iptId={ipt.id} isActive={ipt.is_active} />
