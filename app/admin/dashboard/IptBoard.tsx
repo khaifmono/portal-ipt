@@ -26,11 +26,14 @@ export function IptBoard({ ipts }: { ipts: IptData[] }) {
   )
 
   return (
-    <>
-      {/* Header + Search */}
-      <div className="flex items-center justify-between mb-4 gap-4">
-        <h2 className="text-lg font-semibold text-gray-900 shrink-0">Senarai IPT</h2>
-        <div className="flex items-center gap-3">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Senarai IPT</h2>
+            <p className="text-sm text-gray-400 mt-0.5">{ipts.length} IPT berdaftar</p>
+          </div>
           <div className="relative">
             <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -40,101 +43,113 @@ export function IptBoard({ ipts }: { ipts: IptData[] }) {
               placeholder="Cari IPT..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              className="w-64 rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white placeholder:text-gray-400"
             />
           </div>
-          <p className="text-sm text-gray-400 shrink-0">{filtered.length} / {ipts.length} IPT</p>
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-gray-300 p-16 text-center">
-          <p className="text-gray-500 font-medium">
-            {ipts.length === 0 ? 'Tiada IPT lagi' : `Tiada IPT sepadan dengan "${search}"`}
-          </p>
-          {ipts.length === 0 && (
-            <p className="text-gray-400 text-sm mt-1">Klik &quot;Tambah IPT&quot; untuk bermula</p>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((ipt) => (
-            <div key={ipt.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-              {/* Card Header */}
-              <div className={`px-5 py-4 flex items-center gap-3 ${ipt.is_active ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-gray-400 to-gray-500'}`}>
-                {ipt.logo_url ? (
-                  <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white/30 bg-white/20">
-                    <IptLogo src={ipt.logo_url} alt={ipt.name} size={48} className="w-full h-full object-cover" />
+      {/* Table */}
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-100">
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">IPT</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Slug</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Pengguna</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Kursus</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Pentadbir</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+            <th className="px-6 py-3"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {filtered.length === 0 ? (
+            <tr>
+              <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                {ipts.length === 0 ? 'Tiada IPT lagi' : `Tiada IPT sepadan dengan "${search}"`}
+              </td>
+            </tr>
+          ) : (
+            filtered.map((ipt) => (
+              <tr key={ipt.id} className="hover:bg-gray-50/50 transition-colors group">
+                {/* Name + Logo */}
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    {ipt.logo_url ? (
+                      <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden bg-gray-100">
+                        <IptLogo src={ipt.logo_url} alt={ipt.name} size={36} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">{ipt.name[0]}</span>
+                      </div>
+                    )}
+                    <span className="font-medium text-gray-900">{ipt.name}</span>
                   </div>
-                ) : (
-                  <div className="w-12 h-12 shrink-0 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/30">
-                    <span className="text-white text-lg font-bold">{ipt.name[0]}</span>
+                </td>
+
+                {/* Slug */}
+                <td className="px-6 py-4 text-gray-500 font-mono text-xs">{ipt.slug}</td>
+
+                {/* Users */}
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-1.5 text-gray-600">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    {ipt._count.users}
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-semibold truncate">{ipt.name}</h3>
-                  <p className="text-blue-200 text-xs font-mono">/{ipt.slug}</p>
-                </div>
-                {ipt.is_active ? (
-                  <span className="shrink-0 inline-flex items-center rounded-full bg-green-400/20 px-2 py-0.5 text-xs font-semibold text-green-100">Aktif</span>
-                ) : (
-                  <span className="shrink-0 inline-flex items-center rounded-full bg-red-400/20 px-2 py-0.5 text-xs font-semibold text-red-200">Tidak Aktif</span>
-                )}
-              </div>
+                </td>
 
-              {/* Stats */}
-              <div className="px-5 py-4 grid grid-cols-3 gap-3 text-center border-b border-gray-100">
-                <div>
-                  <p className="text-xl font-bold text-gray-900">{ipt._count.users}</p>
-                  <p className="text-xs text-gray-500">Pengguna</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900">{ipt._count.courses}</p>
-                  <p className="text-xs text-gray-500">Kursus</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900">{ipt._count.enrollments}</p>
-                  <p className="text-xs text-gray-500">Pendaftaran</p>
-                </div>
-              </div>
+                {/* Courses */}
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-1.5 text-gray-600">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    {ipt._count.courses}
+                  </div>
+                </td>
 
-              {/* Admin List */}
-              <div className="px-5 py-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Pentadbir IPT</p>
-                {ipt.admins.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Tiada pentadbir ditetapkan</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {ipt.admins.map((admin) => (
-                      <div key={admin.id} className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${admin.role === 'super_admin' ? 'bg-red-500' : 'bg-blue-500'}`}>
+                {/* Admins */}
+                <td className="px-6 py-4">
+                  {ipt.admins.length === 0 ? (
+                    <span className="text-gray-400 text-xs italic">—</span>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      {ipt.admins.slice(0, 3).map((admin) => (
+                        <div key={admin.id} title={admin.nama} className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold -ml-1 first:ml-0 ring-2 ring-white">
                           {admin.nama[0]}
                         </div>
-                        <p className="text-sm text-gray-800 truncate flex-1">{admin.nama}</p>
-                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${admin.role === 'super_admin' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
-                          {admin.role === 'super_admin' ? 'Super' : 'Admin'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      ))}
+                      {ipt.admins.length > 3 && (
+                        <span className="text-xs text-gray-400 ml-1">+{ipt.admins.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                </td>
 
-              {/* Footer */}
-              <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                  <Link href={`/${ipt.slug}`} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">Portal →</Link>
-                  <span className="text-gray-300">|</span>
-                  <Link href={`/admin/ipts/${ipt.id}/edit`} className="text-xs text-gray-600 hover:text-gray-800 font-medium transition-colors">Edit</Link>
-                  <span className="text-gray-300">|</span>
-                  <Link href={`/admin/ipts/${ipt.id}/admins`} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors">Pentadbir</Link>
-                </div>
-                <ToggleIptButton iptId={ipt.id} isActive={ipt.is_active} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+                {/* Status */}
+                <td className="px-6 py-4">
+                  {ipt.is_active ? (
+                    <span className="inline-flex items-center rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-xs font-semibold text-green-700">Aktif</span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-gray-50 border border-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-500">Tidak Aktif</span>
+                  )}
+                </td>
+
+                {/* Actions */}
+                <td className="px-6 py-4">
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Link href={`/admin/ipts/${ipt.id}/edit`} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">Edit</Link>
+                    <Link href={`/admin/ipts/${ipt.id}/admins`} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors">Pentadbir</Link>
+                    <ToggleIptButton iptId={ipt.id} isActive={ipt.is_active} />
+                    <Link href={`/${ipt.slug}`} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    </Link>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
   )
 }
