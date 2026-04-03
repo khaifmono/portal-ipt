@@ -17,21 +17,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials?.password as string | undefined
         const ipt_slug = credentials?.ipt_slug as string | undefined
 
-        if (!ic_number || !password || !ipt_slug) return null
+        if (!ic_number || !password) return null
 
-        // Find IPT by slug
+        // System-level super admin login (no IPT slug needed)
+        if (!ipt_slug || ipt_slug === '__admin__') {
+          const user = await prisma.user.findFirst({
+            where: { ic_number, role: 'super_admin' },
+          })
+          if (!user) return null
+
+          const valid = await bcrypt.compare(password, user.password_hash)
+          if (!valid) return null
+
+          return {
+            id: user.id,
+            name: user.nama,
+            role: user.role,
+            ipt_id: user.ipt_id,
+            nama: user.nama,
+          }
+        }
+
+        // IPT-level login
         const ipt = await prisma.ipt.findFirst({
           where: { slug: ipt_slug, is_active: true },
         })
         if (!ipt) return null
 
-        // Find user by IC number within IPT
         const user = await prisma.user.findUnique({
           where: { ipt_id_ic_number: { ipt_id: ipt.id, ic_number } },
         })
         if (!user) return null
 
-        // Verify password
         const valid = await bcrypt.compare(password, user.password_hash)
         if (!valid) return null
 

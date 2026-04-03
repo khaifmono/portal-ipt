@@ -9,7 +9,6 @@ import { signIn } from 'next-auth/react'
 const schema = z.object({
   ic_number: z.string().min(1, 'Nombor IC diperlukan').regex(/^\d{12}$/, 'Nombor IC mesti 12 digit'),
   password: z.string().min(6, 'Kata laluan mesti sekurang-kurangnya 6 aksara'),
-  ipt_slug: z.string().min(1, 'IPT slug diperlukan'),
 })
 
 type FormInput = z.infer<typeof schema>
@@ -29,12 +28,12 @@ export function AdminLoginForm() {
     const result = await signIn('credentials', {
       ic_number: values.ic_number,
       password: values.password,
-      ipt_slug: values.ipt_slug,
+      ipt_slug: '__admin__',
       redirect: false,
     })
 
     if (result?.error) {
-      setError('root', { message: 'Nombor IC, kata laluan, atau IPT tidak sah.' })
+      setError('root', { message: 'Nombor IC atau kata laluan tidak sah.' })
       return
     }
 
@@ -44,20 +43,6 @@ export function AdminLoginForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      <div>
-        <label htmlFor="ipt_slug" className="block text-sm font-medium text-blue-200 mb-1">
-          IPT Slug
-        </label>
-        <input
-          id="ipt_slug"
-          type="text"
-          placeholder="cth: upm"
-          {...register('ipt_slug')}
-          className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/15"
-        />
-        {errors.ipt_slug && <p className="mt-1 text-xs text-red-400">{errors.ipt_slug.message}</p>}
-      </div>
-
       <div>
         <label htmlFor="ic_number" className="block text-sm font-medium text-blue-200 mb-1">
           Nombor IC

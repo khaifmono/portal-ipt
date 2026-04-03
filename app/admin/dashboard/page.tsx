@@ -14,7 +14,12 @@ export default async function AdminDashboardPage() {
     orderBy: { created_at: 'desc' },
     include: {
       _count: {
-        select: { users: true, courses: true },
+        select: { users: true, courses: true, enrollments: true },
+      },
+      users: {
+        where: { role: { in: ['admin', 'super_admin'] } },
+        select: { id: true, nama: true, role: true, ic_number: true },
+        orderBy: { role: 'asc' },
       },
     },
   })
@@ -30,7 +35,7 @@ export default async function AdminDashboardPage() {
         <Link href="/admin/dashboard" className="flex items-center gap-3 shrink-0">
           <Image src="/logos/psscm.png" alt="PSSCM" width={38} height={38} className="rounded-full object-cover" />
           <div className="hidden sm:block">
-            <p className="text-[10px] text-red-500 leading-none font-semibold tracking-wider uppercase">Admin Panel</p>
+            <p className="text-[10px] text-red-500 leading-none font-semibold tracking-wider uppercase">Pentadbir Sistem</p>
             <p className="text-sm font-semibold text-gray-800 leading-snug">Portal IPT PSSCM</p>
           </div>
         </Link>
@@ -54,7 +59,7 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Dashboard Pentadbir</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Pengurusan semua IPT dalam Portal PSSCM</p>
+              <p className="text-sm text-gray-500 mt-0.5">Pengurusan semua IPT dalam sistem Portal PSSCM</p>
             </div>
             <Link
               href="/admin/ipts/new"
@@ -65,60 +70,22 @@ export default async function AdminDashboardPage() {
             </Link>
           </div>
 
-          {/* Stats */}
+          {/* Stats Row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{ipts.length}</p>
-                  <p className="text-xs text-gray-500">Jumlah IPT</p>
-                </div>
-              </div>
-              <p className="text-xs text-gray-400 mt-2">{activeIpts} aktif · {ipts.length - activeIpts} tidak aktif</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
-                  <p className="text-xs text-gray-500">Jumlah Pengguna</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{totalCourses}</p>
-                  <p className="text-xs text-gray-500">Jumlah Kursus</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-emerald-600">{activeIpts}</p>
-                  <p className="text-xs text-gray-500">IPT Aktif</p>
-                </div>
-              </div>
-            </div>
+            <StatCard icon="building" label="Jumlah IPT" value={ipts.length} sub={`${activeIpts} aktif`} color="blue" />
+            <StatCard icon="users" label="Jumlah Pengguna" value={totalUsers} sub="Semua IPT" color="green" />
+            <StatCard icon="book" label="Jumlah Kursus" value={totalCourses} sub="Semua IPT" color="indigo" />
+            <StatCard icon="check" label="IPT Aktif" value={activeIpts} sub={`${ipts.length - activeIpts} tidak aktif`} color="emerald" />
           </div>
 
           {/* IPT Board */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Senarai IPT</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Senarai IPT</h2>
+            <p className="text-sm text-gray-400">{ipts.length} IPT berdaftar</p>
+          </div>
+
           {ipts.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-gray-300 p-16 text-center">
-              <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
               <p className="text-gray-500 font-medium">Tiada IPT lagi</p>
               <p className="text-gray-400 text-sm mt-1">Klik &quot;Tambah IPT&quot; untuk bermula</p>
             </div>
@@ -127,7 +94,7 @@ export default async function AdminDashboardPage() {
               {ipts.map((ipt) => (
                 <div key={ipt.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                   {/* Card Header */}
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-5 py-4 flex items-center gap-3">
+                  <div className={`px-5 py-4 flex items-center gap-3 ${ipt.is_active ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-gray-400 to-gray-500'}`}>
                     {ipt.logo_url ? (
                       <Image src={ipt.logo_url} alt={ipt.name} width={48} height={48} className="rounded-full object-cover ring-2 ring-white/30" />
                     ) : (
@@ -146,34 +113,60 @@ export default async function AdminDashboardPage() {
                     )}
                   </div>
 
-                  {/* Card Body */}
-                  <div className="px-5 py-4">
-                    <div className="grid grid-cols-3 gap-3 text-center">
-                      <div>
-                        <p className="text-xl font-bold text-gray-900">{ipt._count.users}</p>
-                        <p className="text-xs text-gray-500">Pengguna</p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-gray-900">{ipt._count.courses}</p>
-                        <p className="text-xs text-gray-500">Kursus</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mt-1">Dicipta</p>
-                        <p className="text-xs font-medium text-gray-700">
-                          {new Date(ipt.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </p>
-                      </div>
+                  {/* Stats */}
+                  <div className="px-5 py-4 grid grid-cols-3 gap-3 text-center border-b border-gray-100">
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{ipt._count.users}</p>
+                      <p className="text-xs text-gray-500">Pengguna</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{ipt._count.courses}</p>
+                      <p className="text-xs text-gray-500">Kursus</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{ipt._count.enrollments}</p>
+                      <p className="text-xs text-gray-500">Pendaftaran</p>
                     </div>
                   </div>
 
-                  {/* Card Footer */}
-                  <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-                    <Link
-                      href={`/${ipt.slug}`}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                    >
-                      Buka Portal →
-                    </Link>
+                  {/* Admin List */}
+                  <div className="px-5 py-3">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Pentadbir IPT</p>
+                    {ipt.users.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic">Tiada pentadbir ditetapkan</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {ipt.users.map((admin) => (
+                          <div key={admin.id} className="flex items-center gap-2">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${admin.role === 'super_admin' ? 'bg-red-500' : 'bg-blue-500'}`}>
+                              {admin.nama[0]}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-800 truncate">{admin.nama}</p>
+                            </div>
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${admin.role === 'super_admin' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                              {admin.role === 'super_admin' ? 'Super' : 'Admin'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/${ipt.slug}`}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                      >
+                        Buka Portal →
+                      </Link>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-[10px] text-gray-400">
+                        {new Date(ipt.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
                     <ToggleIptButton iptId={ipt.id} isActive={ipt.is_active} />
                   </div>
                 </div>
@@ -182,6 +175,36 @@ export default async function AdminDashboardPage() {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function StatCard({ icon, label, value, sub, color }: { icon: string; label: string; value: number; sub: string; color: string }) {
+  const colors: Record<string, { bg: string; text: string }> = {
+    blue: { bg: 'bg-blue-50', text: 'text-blue-600' },
+    green: { bg: 'bg-green-50', text: 'text-green-600' },
+    indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600' },
+    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+  }
+  const c = colors[color] || colors.blue
+
+  const icons: Record<string, React.ReactNode> = {
+    building: <svg className={`w-5 h-5 ${c.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+    users: <svg className={`w-5 h-5 ${c.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+    book: <svg className={`w-5 h-5 ${c.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+    check: <svg className={`w-5 h-5 ${c.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center`}>{icons[icon]}</div>
+        <div>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs text-gray-500">{label}</p>
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 mt-2">{sub}</p>
     </div>
   )
 }
