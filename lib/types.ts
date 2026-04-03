@@ -173,3 +173,24 @@ export interface Schedule {
   created_by: string
   created_at: string
 }
+
+export interface ForumThread {
+  id: string
+  course_id: string
+  ipt_id: string
+  title: string
+  content: string
+  is_pinned: boolean
+  is_locked: boolean
+  created_by: string
+  created_at: string
+}
+
+export interface ForumReply {
+  id: string
+  thread_id: string
+  ipt_id: string
+  content: string
+  created_by: string
+  created_at: string
+}

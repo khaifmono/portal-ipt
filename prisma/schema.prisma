@@ -70,6 +70,8 @@ model Ipt {
   schedules          Schedule[]
   course_materials   CourseMaterial[]
   announcements      Announcement[]
+  forum_threads      ForumThread[]
+  forum_replies      ForumReply[]
 
   @@map("ipts")
 }
@@ -97,6 +99,8 @@ model User {
   created_schedules      Schedule[]         @relation("ScheduleCreator")
   created_materials      CourseMaterial[]   @relation("MaterialCreator")
   created_announcements  Announcement[]     @relation("AnnouncementCreator")
+  created_threads        ForumThread[]      @relation("ThreadCreator")
+  created_replies        ForumReply[]       @relation("ReplyCreator")
 
   @@unique([ipt_id, ic_number])
   @@map("users")
@@ -120,6 +124,7 @@ model Course {
   schedules           Schedule[]
   materials           CourseMaterial[]
   announcements       Announcement[]
+  forum_threads       ForumThread[]
 
   @@map("courses")
 }
@@ -350,4 +355,38 @@ model Announcement {
   creator User    @relation("AnnouncementCreator", fields: [created_by], references: [id])
 
   @@map("announcements")
+}
+
+model ForumThread {
+  id         String   @id @default(uuid()) @db.Uuid
+  course_id  String   @db.Uuid
+  ipt_id     String   @db.Uuid
+  title      String
+  content    String
+  is_pinned  Boolean  @default(false)
+  is_locked  Boolean  @default(false)
+  created_by String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz()
+
+  course  Course       @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  ipt     Ipt          @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
+  creator User         @relation("ThreadCreator", fields: [created_by], references: [id])
+  replies ForumReply[]
+
+  @@map("forum_threads")
+}
+
+model ForumReply {
+  id         String   @id @default(uuid()) @db.Uuid
+  thread_id  String   @db.Uuid
+  ipt_id     String   @db.Uuid
+  content    String
+  created_by String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz()
+
+  thread  ForumThread @relation(fields: [thread_id], references: [id], onDelete: Cascade)
+  ipt     Ipt         @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
+  creator User        @relation("ReplyCreator", fields: [created_by], references: [id])
+
+  @@map("forum_replies")
 }

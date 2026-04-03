@@ -61,6 +61,9 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
               <NavLink href={`/${iptSlug}/admin/schedule`}>Jadual</NavLink>
             </>
           )}
+          {role === 'super_admin' && (
+            <NavLink href="/super-admin">Pentadbir Sistem</NavLink>
+          )}
         </div>
       )}
 
