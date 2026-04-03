@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { IptLogo } from '@/components/ui/IptLogo'
 import { AdminManager } from './AdminManager'
 
 export default async function IptAdminsPage({
@@ -61,7 +62,7 @@ export default async function IptAdminsPage({
           <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-xl px-6 py-5 mb-6 flex items-center gap-4">
             {ipt.logo_url ? (
               <div className="w-14 h-14 shrink-0 rounded-full overflow-hidden ring-2 ring-white/30 bg-white/20">
-                <Image src={ipt.logo_url} alt={ipt.name} width={56} height={56} className="w-full h-full object-cover" />
+                <IptLogo src={ipt.logo_url} alt={ipt.name} size={56} className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="w-14 h-14 shrink-0 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/30">

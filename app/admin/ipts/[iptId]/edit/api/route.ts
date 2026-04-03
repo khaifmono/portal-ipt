@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
-import { saveFile } from '@/lib/storage'
+
+async function fileToDataUrl(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const base64 = buffer.toString('base64')
+  return `data:${file.type};base64,${base64}`
+}
 
 export async function PATCH(
   request: Request,
@@ -28,10 +33,7 @@ export async function PATCH(
 
   let logoUrl = ipt.logo_url
   if (logoFile && logoFile.size > 0) {
-    const ext = logoFile.name.split('.').pop() || 'png'
-    const filePath = `ipt-logos/${ipt.slug}.${ext}`
-    await saveFile(filePath, logoFile)
-    logoUrl = `/api/files/${filePath}`
+    logoUrl = await fileToDataUrl(logoFile)
   }
 
   const updated = await prisma.ipt.update({

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
+import { IptLogo } from '@/components/ui/IptLogo'
 import { ToggleIptButton } from './ToggleIptButton'
 
 interface IptData {
@@ -64,7 +64,7 @@ export function IptBoard({ ipts }: { ipts: IptData[] }) {
               <div className={`px-5 py-4 flex items-center gap-3 ${ipt.is_active ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-gray-400 to-gray-500'}`}>
                 {ipt.logo_url ? (
                   <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white/30 bg-white/20">
-                    <Image src={ipt.logo_url} alt={ipt.name} width={48} height={48} className="w-full h-full object-cover" />
+                    <IptLogo src={ipt.logo_url} alt={ipt.name} size={48} className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <div className="w-12 h-12 shrink-0 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/30">

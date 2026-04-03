@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
-import { saveFile } from '@/lib/storage'
+
+async function fileToDataUrl(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const base64 = buffer.toString('base64')
+  return `data:${file.type};base64,${base64}`
+}
 
 export async function POST(request: Request) {
   const session = await auth()
@@ -11,7 +16,6 @@ export async function POST(request: Request) {
 
   const contentType = request.headers.get('content-type') || ''
 
-  // Handle multipart form data (with logo file)
   if (contentType.includes('multipart/form-data')) {
     const formData = await request.formData()
     const name = formData.get('name') as string
@@ -33,10 +37,7 @@ export async function POST(request: Request) {
 
     let logoUrl: string | null = null
     if (logoFile && logoFile.size > 0) {
-      const ext = logoFile.name.split('.').pop() || 'png'
-      const filePath = `ipt-logos/${slug}.${ext}`
-      await saveFile(filePath, logoFile)
-      logoUrl = `/api/files/${filePath}`
+      logoUrl = await fileToDataUrl(logoFile)
     }
 
     const ipt = await prisma.ipt.create({
@@ -45,7 +46,6 @@ export async function POST(request: Request) {
     return NextResponse.json(ipt, { status: 201 })
   }
 
-  // Handle JSON (without logo file)
   const body = await request.json()
   const { name, slug, logo_url } = body
 
