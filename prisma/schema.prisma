@@ -69,6 +69,7 @@ model Ipt {
   attendance_records AttendanceRecord[]
   schedules          Schedule[]
   course_materials   CourseMaterial[]
+  announcements      Announcement[]
 
   @@map("ipts")
 }
@@ -95,6 +96,7 @@ model User {
   attendance_records     AttendanceRecord[]
   created_schedules      Schedule[]         @relation("ScheduleCreator")
   created_materials      CourseMaterial[]   @relation("MaterialCreator")
+  created_announcements  Announcement[]     @relation("AnnouncementCreator")
 
   @@unique([ipt_id, ic_number])
   @@map("users")
@@ -117,6 +119,7 @@ model Course {
   attendance_sessions AttendanceSession[]
   schedules           Schedule[]
   materials           CourseMaterial[]
+  announcements       Announcement[]
 
   @@map("courses")
 }
@@ -330,4 +333,21 @@ model Schedule {
   creator User   @relation("ScheduleCreator", fields: [created_by], references: [id])
 
   @@map("schedules")
+}
+
+model Announcement {
+  id         String   @id @default(uuid()) @db.Uuid
+  course_id  String?  @db.Uuid
+  ipt_id     String   @db.Uuid
+  title      String
+  content    String
+  is_pinned  Boolean  @default(false)
+  created_by String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz()
+
+  course  Course? @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  ipt     Ipt     @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
+  creator User    @relation("AnnouncementCreator", fields: [created_by], references: [id])
+
+  @@map("announcements")
 }

@@ -150,6 +150,17 @@ export interface CourseMaterial {
   created_at: string
 }
 
+export interface Announcement {
+  id: string
+  course_id: string | null
+  ipt_id: string
+  title: string
+  content: string
+  is_pinned: boolean
+  created_by: string
+  created_at: string
+}
+
 export interface Schedule {
   id: string
   course_id: string
