@@ -51,7 +51,7 @@ export default async function CoursePage({
             <p className="text-blue-200 mt-2 text-sm">{course.description}</p>
           )}
         </div>
-        <div className="flex items-center gap-6 px-6 py-3 border-t border-gray-100 bg-gray-50">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50">
           <Link
             href={`/${ipt_slug}/courses/${courseId}/attendance`}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 transition-colors"
@@ -61,7 +61,7 @@ export default async function CoursePage({
             </svg>
             Rekod Kehadiran
           </Link>
-          <span className="text-gray-300">|</span>
+          <span className="text-gray-300 hidden sm:inline">|</span>
           {isStaff ? (
             <Link
               href={`/${ipt_slug}/courses/${courseId}/gradebook`}
@@ -83,7 +83,7 @@ export default async function CoursePage({
               Markah Saya
             </Link>
           )}
-          <span className="text-gray-300">|</span>
+          <span className="text-gray-300 hidden sm:inline">|</span>
           <Link
             href={`/${ipt_slug}/courses/${courseId}/forum`}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 transition-colors"
@@ -95,7 +95,7 @@ export default async function CoursePage({
           </Link>
           {isStaff && (
             <>
-              <span className="text-gray-300">|</span>
+              <span className="text-gray-300 hidden sm:inline">|</span>
               <Link
                 href={`/${ipt_slug}/courses/${courseId}/students`}
                 className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 transition-colors"
@@ -107,7 +107,7 @@ export default async function CoursePage({
               </Link>
             </>
           )}
-          <span className="text-gray-300">|</span>
+          <span className="text-gray-300 hidden sm:inline">|</span>
           <span className="text-sm text-gray-500">{weeks.length} minggu pembelajaran</span>
         </div>
       </div>

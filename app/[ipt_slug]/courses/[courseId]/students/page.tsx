@@ -87,12 +87,13 @@ export default async function CourseStudentsPage({
         <div className="px-6 py-3 border-b border-gray-100 bg-gray-50">
           <h2 className="text-sm font-semibold text-gray-600">Pelajar ({students.length})</h2>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide w-10">Bil</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Nama</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">No IC</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">No IC</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Kelas Latihan</th>
             </tr>
           </thead>
@@ -113,13 +114,14 @@ export default async function CourseStudentsPage({
                       <span className="font-medium text-gray-900">{e.user.nama}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-3 text-gray-500 font-mono text-xs">{e.user.ic_number}</td>
+                  <td className="px-6 py-3 text-gray-500 font-mono text-xs hidden md:table-cell">{e.user.ic_number}</td>
                   <td className="px-6 py-3 text-gray-500 text-xs">{e.user.kelas_latihan ?? '—'}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

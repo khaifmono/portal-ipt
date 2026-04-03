@@ -215,7 +215,7 @@ export function BulkAttendanceForm({
               <th className="text-left px-4 py-3 font-semibold text-gray-700">Nama</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-700 hidden sm:table-cell">No IC</th>
               <th className="text-center px-4 py-3 font-semibold text-gray-700">Status</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-700">Catatan</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-700 hidden lg:table-cell">Catatan</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -249,7 +249,7 @@ export function BulkAttendanceForm({
                           onClick={() => setStudentStatus(student.userId, s.value)}
                           disabled={saving}
                           title={s.label}
-                          className={`w-9 h-9 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${
+                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${
                             currentStatus === s.value ? s.activeClass : s.inactiveClass
                           }`}
                         >
@@ -258,7 +258,7 @@ export function BulkAttendanceForm({
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden lg:table-cell">
                     <input
                       type="text"
                       value={currentRemark}

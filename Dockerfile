@@ -1,30 +1,36 @@
 FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
 
+# --- Dependencies (cached unless package.json changes) ---
 FROM base AS deps
-WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY prisma/schema.prisma ./prisma/schema.prisma
+COPY prisma.config.ts ./prisma.config.ts
 RUN pnpm install --frozen-lockfile
-
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 RUN npx prisma generate
+
+# --- Builder ---
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/lib/generated ./lib/generated
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-FROM base AS runner
+# --- Runner (minimal image) ---
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/lib/generated ./lib/generated
 
-RUN mkdir -p /data/uploads && chown nextjs:nodejs /data/uploads
+RUN mkdir -p /data/uploads .next/cache && chown -R nextjs:nodejs /data/uploads .next/cache
 VOLUME /data/uploads
 
 USER nextjs

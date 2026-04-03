@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { auth } from '@/auth'
 import { NavLink } from './NavLink'
+import { MobileMenuToggle } from './MobileMenuToggle'
 
 interface AppNavbarProps {
   iptSlug: string
@@ -48,9 +49,9 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
         </>
       )}
 
-      {/* Nav links */}
+      {/* Nav links — desktop */}
       {user && (
-        <div className="flex items-center gap-0.5">
+        <div className="hidden md:flex items-center gap-0.5">
           <NavLink href={`/${iptSlug}/dashboard`}>Dashboard</NavLink>
           <NavLink href={`/${iptSlug}/courses`}>Kursus Saya</NavLink>
           <NavLink href={`/${iptSlug}/calendar`}>Kalendar</NavLink>
@@ -65,6 +66,25 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
             <NavLink href="/super-admin">Pentadbir Sistem</NavLink>
           )}
         </div>
+      )}
+
+      {/* Nav links — mobile hamburger */}
+      {user && (
+        <MobileMenuToggle>
+          <NavLink href={`/${iptSlug}/dashboard`}>Dashboard</NavLink>
+          <NavLink href={`/${iptSlug}/courses`}>Kursus Saya</NavLink>
+          <NavLink href={`/${iptSlug}/calendar`}>Kalendar</NavLink>
+          {isAdmin && (
+            <>
+              <NavLink href={`/${iptSlug}/admin/users`}>Pengguna</NavLink>
+              <NavLink href={`/${iptSlug}/admin/courses`}>Kursus</NavLink>
+              <NavLink href={`/${iptSlug}/admin/schedule`}>Jadual</NavLink>
+            </>
+          )}
+          {role === 'super_admin' && (
+            <NavLink href="/super-admin">Pentadbir Sistem</NavLink>
+          )}
+        </MobileMenuToggle>
       )}
 
       {/* Right side */}
