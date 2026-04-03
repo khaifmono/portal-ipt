@@ -96,9 +96,11 @@ export default async function AdminDashboardPage() {
                   {/* Card Header */}
                   <div className={`px-5 py-4 flex items-center gap-3 ${ipt.is_active ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-gray-400 to-gray-500'}`}>
                     {ipt.logo_url ? (
-                      <Image src={ipt.logo_url} alt={ipt.name} width={48} height={48} className="rounded-full object-cover ring-2 ring-white/30" />
+                      <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white/30 bg-white/20">
+                        <Image src={ipt.logo_url} alt={ipt.name} width={48} height={48} className="w-full h-full object-cover" />
+                      </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/30">
+                      <div className="w-12 h-12 shrink-0 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/30">
                         <span className="text-white text-lg font-bold">{ipt.name[0]}</span>
                       </div>
                     )}
