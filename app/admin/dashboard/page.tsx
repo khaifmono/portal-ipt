@@ -158,16 +158,13 @@ export default async function AdminDashboardPage() {
                   {/* Footer */}
                   <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <div className="flex items-center gap-2">
-                      <Link
-                        href={`/${ipt.slug}`}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                      >
+                      <Link href={`/${ipt.slug}`} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
                         Buka Portal →
                       </Link>
                       <span className="text-gray-300">|</span>
-                      <span className="text-[10px] text-gray-400">
-                        {new Date(ipt.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+                      <Link href={`/admin/ipts/${ipt.id}/admins`} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
+                        Urus Pentadbir
+                      </Link>
                     </div>
                     <ToggleIptButton iptId={ipt.id} isActive={ipt.is_active} />
                   </div>
