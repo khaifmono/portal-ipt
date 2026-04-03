@@ -2,6 +2,7 @@ import { getIptBySlug } from '@/lib/ipt'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { getRecentAnnouncements } from '@/lib/announcements'
+import { getCourseProgress } from '@/lib/courses'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Role } from '@/lib/types'
@@ -257,6 +258,15 @@ export default async function DashboardPage({
     getRecentAnnouncements(ipt.id, 3),
     getUserCourses(user.id, role, ipt.id),
   ])
+
+  // Fetch progress for student courses
+  const courseProgressMap = new Map<string, number>()
+  if (isStudent && courses.length > 0) {
+    const progressResults = await Promise.all(
+      courses.map((c) => getCourseProgress(c.id, user.id))
+    )
+    courses.forEach((c, i) => courseProgressMap.set(c.id, progressResults[i]))
+  }
 
   // Role-specific stats
   let adminStats: Awaited<ReturnType<typeof getAdminStats>> | null = null
@@ -611,6 +621,21 @@ export default async function DashboardPage({
                           {counts.weeks} minggu
                         </span>
                       </div>
+                      {/* Progress bar for students */}
+                      {isStudent && courseProgressMap.has(course.id) && (
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-[11px] text-gray-400">Kemajuan</span>
+                            <span className="text-[11px] font-semibold text-gray-500">{courseProgressMap.get(course.id)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div
+                              className="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                              style={{ width: `${courseProgressMap.get(course.id)}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </Link>
                 )

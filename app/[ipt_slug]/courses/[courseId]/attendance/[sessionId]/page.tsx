@@ -82,8 +82,21 @@ export default async function SessionDetailPage({
 
         {/* Session header */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{attendanceSession.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">{formattedDate}</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{attendanceSession.title}</h1>
+              <p className="text-gray-500 text-sm mt-1">{formattedDate}</p>
+            </div>
+            <Link
+              href={`/${ipt_slug}/courses/${courseId}/attendance/${sessionId}/qr`}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+              </svg>
+              Kod QR
+            </Link>
+          </div>
 
           {/* Quick stats */}
           <div className="flex flex-wrap gap-3 mt-4">

@@ -117,6 +117,7 @@ export interface AttendanceSession {
   ipt_id: string
   session_date: string
   title: string
+  qr_token: string | null
   created_by: string
   created_at: string
 }

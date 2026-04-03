@@ -1,5 +1,5 @@
 import { getIptBySlug } from '@/lib/ipt'
-import { getCourseById, getWeeksByCourse } from '@/lib/courses'
+import { getCourseById, getWeeksByCourse, getCourseProgress } from '@/lib/courses'
 import { getUser } from '@/lib/auth'
 import { getSchedulesByCourse } from '@/lib/schedule'
 import { getAnnouncementsByCourse } from '@/lib/announcements'
@@ -31,6 +31,13 @@ export default async function CoursePage({
   const upcomingSchedules = schedules.filter((s) => new Date(s.start_time) >= now)
 
   const isStaff = ['super_admin', 'admin', 'tenaga_pengajar'].includes(user.role)
+  const isStudent = user.role === 'ahli'
+
+  // Fetch progress for students
+  let progress = 0
+  if (isStudent) {
+    progress = await getCourseProgress(courseId, user.id)
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
@@ -111,6 +118,22 @@ export default async function CoursePage({
           <span className="text-sm text-gray-500">{weeks.length} minggu pembelajaran</span>
         </div>
       </div>
+
+      {/* Progress bar for students */}
+      {isStudent && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-gray-700">Kemajuan Kursus</h2>
+            <span className="text-sm font-bold text-gray-900">{progress}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div
+              className="bg-green-500 h-3 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Announcements */}
       {(announcements.length > 0 || isStaff) && (

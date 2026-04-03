@@ -3,6 +3,7 @@ import { getCoursesByIpt } from '@/lib/courses'
 import { auth } from '@/auth'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import DuplicateCourseButton from './DuplicateCourseButton'
 
 const CARD_GRADIENTS = [
   'from-slate-700 to-slate-900',
@@ -84,7 +85,7 @@ export default async function AdminCoursesPage({
                   )}
                 </div>
               </Link>
-              <div className="bg-white px-4 pb-3 pt-0">
+              <div className="bg-white px-4 pb-3 pt-0 flex items-center gap-2">
                 <Link
                   href={`/${ipt_slug}/admin/courses/${course.id}/enrollments`}
                   className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
@@ -94,6 +95,11 @@ export default async function AdminCoursesPage({
                   </svg>
                   Pendaftaran
                 </Link>
+                <DuplicateCourseButton
+                  iptSlug={ipt_slug}
+                  courseId={course.id}
+                  courseTitle={course.title}
+                />
               </div>
             </div>
           ))}
