@@ -53,6 +53,7 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
         <div className="flex items-center gap-0.5">
           <NavLink href={`/${iptSlug}/dashboard`}>Dashboard</NavLink>
           <NavLink href={`/${iptSlug}/courses`}>Kursus Saya</NavLink>
+          <NavLink href={`/${iptSlug}/calendar`}>Kalendar</NavLink>
           {isAdmin && (
             <>
               <NavLink href={`/${iptSlug}/admin/users`}>Pengguna</NavLink>

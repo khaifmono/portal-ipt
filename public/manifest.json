@@ -1,0 +1,22 @@
+{
+  "name": "Portal IPT PSSCM",
+  "short_name": "Portal IPT",
+  "description": "Sistem Pengurusan Pembelajaran - Persatuan Seni Silat Cekak Malaysia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logos/psscm.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logos/psscm.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
