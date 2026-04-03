@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth-helpers'
 import { getIptBySlug } from '@/lib/ipt'
 import { createAnnouncement } from '@/lib/announcements'
 import { notifyEnrolledUsers } from '@/lib/notifications'
+import { logActivity } from '@/lib/activity-log'
 
 export async function POST(
   request: NextRequest,
@@ -49,6 +50,15 @@ export async function POST(
     isPinned: isPinned ?? false,
     createdBy: user.id,
   })
+
+  // Log activity
+  logActivity({
+    courseId,
+    iptId: ipt.id,
+    userId: user.id,
+    action: 'Mencipta pengumuman',
+    details: title.trim(),
+  }).catch(() => {})
 
   // Notify all enrolled users about the new announcement
   notifyEnrolledUsers(

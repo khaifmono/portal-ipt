@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth-helpers'
 import { gradeSubmission } from '@/lib/grading'
 import { createNotification } from '@/lib/notifications'
+import { logActivity } from '@/lib/activity-log'
 
 export async function POST(
   request: NextRequest,
@@ -47,6 +48,15 @@ export async function POST(
 
   try {
     const result = await gradeSubmission(submissionId, gradeNum, feedbackStr, user.id)
+
+    // Log activity
+    logActivity({
+      courseId,
+      iptId: result.ipt_id,
+      userId: user.id,
+      action: 'Memberi markah',
+      details: `Markah: ${gradeNum}/100`,
+    }).catch(() => {})
 
     // Notify the student that their submission has been graded
     createNotification({

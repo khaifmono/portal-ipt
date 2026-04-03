@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createQuiz, addQuestion } from '@/lib/quizzes'
 import { getUser } from '@/lib/auth'
 import { getIptBySlug } from '@/lib/ipt'
+import { logActivity } from '@/lib/activity-log'
 
 export async function POST(
   request: NextRequest,
@@ -60,6 +61,15 @@ export async function POST(
         })
       }
     }
+
+    // Log activity
+    logActivity({
+      courseId,
+      iptId: ipt.id,
+      userId: user.id,
+      action: 'Mencipta kuiz',
+      details: title,
+    }).catch(() => {})
 
     return NextResponse.json({ quiz }, { status: 201 })
   } catch (err) {

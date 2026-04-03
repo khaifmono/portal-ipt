@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth-helpers'
 import { getIptBySlug } from '@/lib/ipt'
 import { assignmentSchema, createAssignment } from '@/lib/assignments'
 import { notifyEnrolledUsers } from '@/lib/notifications'
+import { logActivity } from '@/lib/activity-log'
 
 export async function POST(
   request: NextRequest,
@@ -54,6 +55,15 @@ export async function POST(
     maxScore,
     createdBy: user.id,
   })
+
+  // Log activity
+  logActivity({
+    courseId,
+    iptId: ipt.id,
+    userId: user.id,
+    action: 'Menambah tugasan',
+    details: title,
+  }).catch(() => {})
 
   // Notify enrolled students about the new assignment
   notifyEnrolledUsers(

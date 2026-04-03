@@ -73,6 +73,7 @@ model Ipt {
   forum_threads      ForumThread[]
   forum_replies      ForumReply[]
   notifications      Notification[]
+  activity_logs      ActivityLog[]
 
   @@map("ipts")
 }
@@ -103,6 +104,7 @@ model User {
   created_threads        ForumThread[]      @relation("ThreadCreator")
   created_replies        ForumReply[]       @relation("ReplyCreator")
   notifications          Notification[]
+  activity_logs          ActivityLog[]
 
   @@unique([ipt_id, ic_number])
   @@map("users")
@@ -127,6 +129,7 @@ model Course {
   materials           CourseMaterial[]
   announcements       Announcement[]
   forum_threads       ForumThread[]
+  activity_logs       ActivityLog[]
 
   @@map("courses")
 }
@@ -408,4 +411,20 @@ model Notification {
   ipt  Ipt  @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  course_id  String?  @db.Uuid
+  ipt_id     String   @db.Uuid
+  user_id    String   @db.Uuid
+  action     String
+  details    String?
+  created_at DateTime @default(now()) @db.Timestamptz()
+
+  course Course? @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  ipt    Ipt     @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
 }
