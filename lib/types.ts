@@ -133,6 +133,23 @@ export interface AttendanceRecord {
   marked_at: string
 }
 
+export type MaterialType = 'file' | 'link' | 'youtube' | 'google_drive'
+
+export interface CourseMaterial {
+  id: string
+  week_id: string
+  course_id: string
+  ipt_id: string
+  title: string
+  description: string | null
+  type: MaterialType
+  file_path: string | null
+  url: string | null
+  order_index: number
+  created_by: string
+  created_at: string
+}
+
 export interface Schedule {
   id: string
   course_id: string

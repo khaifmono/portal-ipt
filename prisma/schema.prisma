@@ -39,6 +39,13 @@ enum AttendanceStatus {
   excused
 }
 
+enum MaterialType {
+  file
+  link
+  youtube
+  google_drive
+}
+
 // ─── Models ─────────────────────────────────────────────
 
 model Ipt {
@@ -61,6 +68,7 @@ model Ipt {
   attendance_sessions AttendanceSession[]
   attendance_records AttendanceRecord[]
   schedules          Schedule[]
+  course_materials   CourseMaterial[]
 
   @@map("ipts")
 }
@@ -86,6 +94,7 @@ model User {
   created_att_sessions   AttendanceSession[] @relation("AttSessionCreator")
   attendance_records     AttendanceRecord[]
   created_schedules      Schedule[]         @relation("ScheduleCreator")
+  created_materials      CourseMaterial[]   @relation("MaterialCreator")
 
   @@unique([ipt_id, ic_number])
   @@map("users")
@@ -107,6 +116,7 @@ model Course {
   quizzes             Quiz[]
   attendance_sessions AttendanceSession[]
   schedules           Schedule[]
+  materials           CourseMaterial[]
 
   @@map("courses")
 }
@@ -124,9 +134,32 @@ model CourseWeek {
   ipt         Ipt          @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
   assignments Assignment[]
   quizzes     Quiz[]
+  materials   CourseMaterial[]
 
   @@unique([course_id, week_number])
   @@map("course_weeks")
+}
+
+model CourseMaterial {
+  id          String       @id @default(uuid()) @db.Uuid
+  week_id     String       @db.Uuid
+  course_id   String       @db.Uuid
+  ipt_id      String       @db.Uuid
+  title       String
+  description String?
+  type        MaterialType
+  file_path   String?
+  url         String?
+  order_index Int          @default(0)
+  created_by  String       @db.Uuid
+  created_at  DateTime     @default(now()) @db.Timestamptz()
+
+  week    CourseWeek @relation(fields: [week_id], references: [id], onDelete: Cascade)
+  course  Course     @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  ipt     Ipt        @relation(fields: [ipt_id], references: [id], onDelete: Cascade)
+  creator User       @relation("MaterialCreator", fields: [created_by], references: [id])
+
+  @@map("course_materials")
 }
 
 model Enrollment {

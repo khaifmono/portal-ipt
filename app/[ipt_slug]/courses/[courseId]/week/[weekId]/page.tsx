@@ -1,11 +1,13 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
+import { getMaterialsByWeek } from '@/lib/materials'
 import { getAssignmentsByWeek } from '@/lib/assignments'
 import { getQuizzesByWeek } from '@/lib/quizzes'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { MaterialType } from '@/lib/types'
 
 export default async function WeekPage({
   params,
@@ -32,7 +34,8 @@ export default async function WeekPage({
   const role = user.role ?? 'ahli'
   const isStaff = ['admin', 'super_admin', 'tenaga_pengajar'].includes(role)
 
-  const [assignments, quizzes] = await Promise.all([
+  const [materials, assignments, quizzes] = await Promise.all([
+    getMaterialsByWeek(weekId),
     getAssignmentsByWeek(weekId),
     getQuizzesByWeek(weekId).catch(() => []),
   ])
@@ -55,6 +58,88 @@ export default async function WeekPage({
         </span>
         <h1 className="text-xl font-bold text-gray-900">{week.title}</h1>
         {week.description && <p className="text-gray-500 mt-2 text-sm">{week.description}</p>}
+      </div>
+
+      {/* Materials section */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-5">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </span>
+            Bahan Pembelajaran
+          </h2>
+          {isStaff && (
+            <Link
+              href={`/${ipt_slug}/courses/${courseId}/week/${weekId}/materials/new`}
+              className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
+            >
+              + Tambah Bahan
+            </Link>
+          )}
+        </div>
+
+        {materials.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-6">
+            {isStaff ? 'Belum ada bahan. Klik "+ Tambah Bahan" untuk memuat naik bahan pertama.' : 'Tiada bahan pembelajaran untuk minggu ini.'}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {materials.map((material) => {
+              const icon = materialIcon(material.type)
+              const isFile = material.type === 'file'
+              const href = isFile
+                ? `/api/files/${material.file_path}`
+                : material.url ?? '#'
+              const typeBadge = materialBadge(material.type)
+
+              return (
+                <div
+                  key={material.id}
+                  className="flex items-center gap-4 rounded-lg border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/50 px-4 py-3.5 transition-all group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 text-base">
+                    {icon}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href={href}
+                      target={isFile ? '_self' : '_blank'}
+                      rel={isFile ? undefined : 'noopener noreferrer'}
+                      className="text-sm font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors"
+                    >
+                      {material.title}
+                    </a>
+                    {material.description && (
+                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{material.description}</p>
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${typeBadge}`}>
+                    {materialLabel(material.type)}
+                  </span>
+                  {isStaff && (
+                    <form
+                      action={`/${ipt_slug}/courses/${courseId}/week/${weekId}/materials/${material.id}/delete`}
+                      method="POST"
+                    >
+                      <button
+                        type="submit"
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                        title="Padam"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Assignments section */}
@@ -171,4 +256,34 @@ export default async function WeekPage({
       </div>
     </div>
   )
+}
+
+function materialIcon(type: MaterialType): string {
+  switch (type) {
+    case 'file': return '\u{1F4C4}'
+    case 'link': return '\u{1F517}'
+    case 'youtube': return '\u25B6\uFE0F'
+    case 'google_drive': return '\u{1F4C1}'
+    default: return '\u{1F4C4}'
+  }
+}
+
+function materialBadge(type: MaterialType): string {
+  switch (type) {
+    case 'file': return 'bg-blue-100 text-blue-700'
+    case 'link': return 'bg-gray-100 text-gray-600'
+    case 'youtube': return 'bg-red-100 text-red-700'
+    case 'google_drive': return 'bg-yellow-100 text-yellow-700'
+    default: return 'bg-gray-100 text-gray-600'
+  }
+}
+
+function materialLabel(type: MaterialType): string {
+  switch (type) {
+    case 'file': return 'Fail'
+    case 'link': return 'Pautan'
+    case 'youtube': return 'YouTube'
+    case 'google_drive': return 'Google Drive'
+    default: return type
+  }
 }

@@ -67,14 +67,14 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
       <div className="ml-auto flex items-center gap-3">
         {user ? (
           <>
-            <div className="flex items-center gap-2.5">
+            <Link href={`/${iptSlug}/profile`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-sm">
                 <span className="text-white text-xs font-bold">{initial}</span>
               </div>
               <span className="hidden md:block text-sm font-medium text-gray-700">
                 {user.nama ?? 'Pengguna'}
               </span>
-            </div>
+            </Link>
             <div className="w-px h-4 bg-gray-200" />
             <form action={`/${iptSlug}/auth/signout`} method="post">
               <button type="submit" className="text-xs text-gray-500 hover:text-red-600 transition-colors font-medium">

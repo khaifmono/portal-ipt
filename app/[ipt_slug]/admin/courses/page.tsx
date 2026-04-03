@@ -60,30 +60,42 @@ export default async function AdminCoursesPage({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {courses.map((course, i) => (
-            <Link
+            <div
               key={course.id}
-              href={`/${ipt_slug}/courses/${course.id}`}
               className="group rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200"
             >
-              <div className={`relative h-40 bg-gradient-to-br ${CARD_GRADIENTS[i % CARD_GRADIENTS.length]} flex flex-col items-center justify-center`}>
-                <div className="absolute top-3 left-3">
-                  <span className="rounded-sm bg-blue-700 text-white text-[10px] font-semibold px-2 py-0.5 uppercase tracking-wide">
-                    {ipt.name.replace('PSSCM ', '')}
-                  </span>
+              <Link href={`/${ipt_slug}/courses/${course.id}`}>
+                <div className={`relative h-40 bg-gradient-to-br ${CARD_GRADIENTS[i % CARD_GRADIENTS.length]} flex flex-col items-center justify-center`}>
+                  <div className="absolute top-3 left-3">
+                    <span className="rounded-sm bg-blue-700 text-white text-[10px] font-semibold px-2 py-0.5 uppercase tracking-wide">
+                      {ipt.name.replace('PSSCM ', '')}
+                    </span>
+                  </div>
+                  <div className="text-white/15 text-6xl font-black select-none">
+                    {course.title.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+                  </div>
                 </div>
-                <div className="text-white/15 text-6xl font-black select-none">
-                  {course.title.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+                <div className="bg-white px-4 py-3">
+                  <p className="text-sm font-semibold text-blue-700 group-hover:text-blue-900 transition-colors line-clamp-2 leading-snug">
+                    {course.title}
+                  </p>
+                  {course.description && (
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{course.description}</p>
+                  )}
                 </div>
+              </Link>
+              <div className="bg-white px-4 pb-3 pt-0">
+                <Link
+                  href={`/${ipt_slug}/admin/courses/${course.id}/enrollments`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Pendaftaran
+                </Link>
               </div>
-              <div className="bg-white px-4 py-4">
-                <p className="text-sm font-semibold text-blue-700 group-hover:text-blue-900 transition-colors line-clamp-2 leading-snug">
-                  {course.title}
-                </p>
-                {course.description && (
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">{course.description}</p>
-                )}
-              </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

@@ -28,6 +28,8 @@ export default async function CoursePage({
   const now = new Date()
   const upcomingSchedules = schedules.filter((s) => new Date(s.start_time) >= now)
 
+  const isStaff = ['super_admin', 'admin', 'tenaga_pengajar'].includes(user.role)
+
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
       {/* Breadcrumb */}
@@ -57,6 +59,28 @@ export default async function CoursePage({
             </svg>
             Rekod Kehadiran
           </Link>
+          <span className="text-gray-300">|</span>
+          {isStaff ? (
+            <Link
+              href={`/${ipt_slug}/courses/${courseId}/gradebook`}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Buku Gred
+            </Link>
+          ) : (
+            <Link
+              href={`/${ipt_slug}/courses/${courseId}/grades`}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Markah Saya
+            </Link>
+          )}
           <span className="text-gray-300">|</span>
           <span className="text-sm text-gray-500">{weeks.length} minggu pembelajaran</span>
         </div>
