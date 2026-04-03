@@ -4,6 +4,8 @@ import { getAllIpts } from '@/lib/ipt'
 import { Badge } from '@/components/ui/badge'
 import { IptLogo } from '@/components/ui/IptLogo'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   const ipts = await getAllIpts()
 
