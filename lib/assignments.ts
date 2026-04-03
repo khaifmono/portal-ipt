@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import type { Assignment } from '@/lib/types'
 
 export const assignmentSchema = z.object({
@@ -16,15 +16,11 @@ export const assignmentSchema = z.object({
 export type AssignmentInput = z.infer<typeof assignmentSchema>
 
 export async function getAssignmentsByWeek(weekId: string): Promise<Assignment[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('assignments')
-    .select('*')
-    .eq('week_id', weekId)
-    .order('created_at', { ascending: true })
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.assignment.findMany({
+    where: { week_id: weekId },
+    orderBy: { created_at: 'asc' },
+  })
+  return data.map(serialize)
 }
 
 export async function createAssignment(params: {
@@ -40,23 +36,26 @@ export async function createAssignment(params: {
 }): Promise<Assignment> {
   if (!params.iptId) throw new Error('ipt_id diperlukan untuk mencipta tugasan')
 
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('assignments')
-    .insert({
+  const data = await prisma.assignment.create({
+    data: {
       week_id: params.weekId,
       course_id: params.courseId,
       ipt_id: params.iptId,
       title: params.title,
       description: params.description ?? null,
       type: params.type,
-      due_date: params.dueDate ? params.dueDate.toISOString() : null,
+      due_date: params.dueDate ?? null,
       max_score: params.maxScore ?? 100,
       created_by: params.createdBy,
-    })
-    .select()
-    .single()
+    },
+  })
+  return serialize(data)
+}
 
-  if (error) throw error
-  return data
+function serialize(row: Record<string, unknown>): Assignment {
+  return {
+    ...(row as unknown as Assignment),
+    created_at: (row.created_at as Date).toISOString(),
+    due_date: row.due_date ? (row.due_date as Date).toISOString() : null,
+  }
 }

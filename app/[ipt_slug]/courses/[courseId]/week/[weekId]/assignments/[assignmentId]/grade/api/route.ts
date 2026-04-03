@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth'
+import { requireRole } from '@/lib/auth-helpers'
 import { gradeSubmission } from '@/lib/grading'
 
 export async function POST(
@@ -15,14 +15,12 @@ export async function POST(
     }>
   }
 ) {
-  // Validate role
-  const user = await getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Tidak dibenarkan' }, { status: 401 })
-  }
+  await params // consume params (unused but required by Next.js)
 
-  const role = user.user_metadata?.role as string | undefined
-  if (!role || !['admin', 'super_admin', 'tenaga_pengajar'].includes(role)) {
+  let user
+  try {
+    user = await requireRole(['admin', 'super_admin', 'tenaga_pengajar'])
+  } catch {
     return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
   }
 

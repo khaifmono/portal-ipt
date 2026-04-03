@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/db'
 import type { Submission } from '@/lib/types'
 
 export async function gradeSubmission(
@@ -11,19 +11,20 @@ export async function gradeSubmission(
     throw new Error('Markah mesti antara 0 dan 100')
   }
 
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('submissions')
-    .update({
+  const data = await prisma.submission.update({
+    where: { id: submissionId },
+    data: {
       grade,
       feedback: feedback ?? null,
       graded_by: gradedBy,
-      graded_at: new Date().toISOString(),
-    })
-    .eq('id', submissionId)
-    .select()
-    .single()
+      graded_at: new Date(),
+    },
+  })
 
-  if (error) throw error
-  return data
+  return {
+    ...(data as unknown as Submission),
+    submitted_at: data.submitted_at.toISOString(),
+    graded_at: data.graded_at ? data.graded_at.toISOString() : null,
+    grade: data.grade !== null ? Number(data.grade) : null,
+  }
 }

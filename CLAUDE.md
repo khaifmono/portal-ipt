@@ -13,7 +13,7 @@ portalipt.silatcekak.org.my/{ipt_slug}
 localhost:3000/{ipt_slug}
 ```
 
-Pilot: 4 IPT. Target scale: ~60 IPT.
+Pilot: 3 IPT (UPM, USM, UTM). Target scale: ~60 IPT.
 
 ## Commands
 
@@ -22,21 +22,26 @@ pnpm dev        # Start development server
 pnpm build      # Production build
 pnpm start      # Start production server
 pnpm lint       # Run ESLint
+npx prisma db push    # Push schema to database
+npx prisma generate   # Regenerate Prisma client
+npx tsx prisma/seed.ts  # Seed database
 ```
 
 ## Tech Stack
 
 - **Framework**: Next.js App Router (TypeScript, strict mode)
-- **Database / Auth / Storage**: Supabase (PostgreSQL + RLS + Supabase Auth + Supabase Storage)
+- **Database**: PostgreSQL 16 (self-hosted via Coolify) + Prisma ORM 7
+- **Auth**: NextAuth.js v5 (Credentials provider, IC Number + Password)
+- **Storage**: Local filesystem (uploaded files stored on disk)
 - **UI**: TailwindCSS v4 + Shadcn UI
 - **Forms**: React Hook Form + Zod
-- **Hosting**: Vercel
+- **Hosting**: Coolify (self-hosted PaaS)
 - **Package manager**: pnpm
 
 ## Architecture
 
 ### Multi-tenancy
-Every database table (except system-level) must include `ipt_id`. All queries filter by `ipt_id`. Supabase Row Level Security (RLS) enforces tenant isolation. Super Admin is the only exception and can access all tenants.
+Every database table (except system-level) must include `ipt_id`. All queries filter by `ipt_id`. Access control is enforced at the application layer (middleware + API route checks). Super Admin is the only exception and can access all tenants.
 
 ### URL Structure
 ```
@@ -58,7 +63,15 @@ Every database table (except system-level) must include `ipt_id`. All queries fi
 | Ahli | View materials, submit assignments, take quizzes, view grades/attendance |
 
 ### Authentication
-Login via **IC Number + Password** (not email). Users are created by Admin (manually or via CSV bulk upload). Supabase Auth is used.
+Login via **IC Number + Password** (not email). Users are created by Admin (manually or via CSV bulk upload). NextAuth.js Credentials provider is used. Passwords are hashed with bcrypt. Session is stored as JWT cookie (7-day expiry).
+
+### Database (Prisma)
+Schema defined in `prisma/schema.prisma`. Uses `prisma-client` generator with `@prisma/adapter-pg` (driver adapter pattern). Generated client is in `lib/generated/prisma/`.
+
+Key: `lib/db.ts` exports the shared `prisma` client instance.
+
+### File Storage
+Files are stored on local disk at `UPLOAD_DIR` (default: `./uploads`). Path structure: `assignment-submissions/{assignmentId}/{userId}/{fileName}`. Served via `GET /api/files/[...path]` with auth check.
 
 ### Course Structure
 ```
@@ -70,11 +83,7 @@ Course
 ```
 
 ### Database Key Tables
-`ipts`, `users` (with `ipt_id`, `ic_number`, `kelas_latihan`, `role`), `courses`, `course_weeks`, `enrollments`, `course_materials`, `assignments`, `submissions`, `quizzes`, `quiz_questions`, `attendance_sessions`, `attendance_records`
-
-### Supabase Storage Buckets
-- `course-files/{courseId}/filename`
-- `assignment-submissions/{assignmentId}/{userId}/file`
+`ipts`, `users` (with `ipt_id`, `ic_number`, `kelas_latihan`, `role`, `password_hash`), `courses`, `course_weeks`, `enrollments`, `assignments`, `submissions`, `quizzes`, `quiz_questions`, `quiz_attempts`, `attendance_sessions`, `attendance_records`, `schedules`
 
 ## Development Phases
 1. **Phase 1**: Auth, IPT routing, user management, course creation, CSV enrollment

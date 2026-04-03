@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/db'
 import type { QuizAttempt, QuizQuestion } from '@/lib/types'
 
 /**
  * Pure helper: grades a single answer against a question.
- * - multiple_choice / true_false: case-insensitive string compare → marks or 0
+ * - multiple_choice / true_false: case-insensitive string compare -> marks or 0
  * - short_answer: always returns -1 (pending manual grading)
  */
 export function scoreAnswer(question: QuizQuestion, answer: string): number {
@@ -21,12 +21,6 @@ export function scoreAnswer(question: QuizQuestion, answer: string): number {
   return 0
 }
 
-/**
- * Computes the total auto-grade score for an attempt.
- * short_answer questions are skipped (score remains null until manually graded).
- * Returns the total score for auto-gradeable questions.
- * If any short_answer question exists, updates DB score to null (pending).
- */
 export async function autoGrade(
   attemptId: string,
   questions: QuizQuestion[],
@@ -45,115 +39,92 @@ export async function autoGrade(
     }
   }
 
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('quiz_attempts')
-    .update({ score: hasPending ? null : total })
-    .eq('id', attemptId)
-
-  if (error) throw error
+  await prisma.quizAttempt.update({
+    where: { id: attemptId },
+    data: { score: hasPending ? null : total },
+  })
 
   return hasPending ? -1 : total
 }
 
-/**
- * Start a quiz attempt for a user.
- * - Throws if the user already has a submitted attempt.
- * - Returns existing in_progress attempt if one exists.
- * - Otherwise creates a new in_progress attempt.
- */
 export async function startAttempt(
   quizId: string,
   userId: string,
   iptId: string
 ): Promise<QuizAttempt> {
-  const supabase = await createClient()
-
   // Check for existing attempt
-  const { data: existing, error: fetchError } = await supabase
-    .from('quiz_attempts')
-    .select('*')
-    .eq('quiz_id', quizId)
-    .eq('user_id', userId)
-    .single()
-
-  if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
+  const existing = await prisma.quizAttempt.findUnique({
+    where: { quiz_id_user_id: { quiz_id: quizId, user_id: userId } },
+  })
 
   if (existing) {
     if (existing.status === 'submitted') {
       throw new Error('Anda telah menghantar kuiz ini')
     }
-    return existing as QuizAttempt
+    return serializeAttempt(existing)
   }
 
-  // Create new attempt
-  const { data, error } = await supabase
-    .from('quiz_attempts')
-    .insert({
+  const data = await prisma.quizAttempt.create({
+    data: {
       quiz_id: quizId,
       user_id: userId,
       ipt_id: iptId,
       status: 'in_progress',
-    })
-    .select()
-    .single()
+    },
+  })
 
-  if (error) throw error
-  return data as QuizAttempt
+  return serializeAttempt(data)
 }
 
-/**
- * Submit a quiz attempt.
- * - Saves answers and sets status to 'submitted'.
- * - Calls autoGrade() internally.
- */
 export async function submitAttempt(
   attemptId: string,
   answers: Record<string, string>
 ): Promise<QuizAttempt> {
-  const supabase = await createClient()
-
   // Fetch attempt to get quiz_id
-  const { data: attempt, error: fetchError } = await supabase
-    .from('quiz_attempts')
-    .select('*')
-    .eq('id', attemptId)
-    .single()
-
-  if (fetchError) throw fetchError
+  const attempt = await prisma.quizAttempt.findUnique({ where: { id: attemptId } })
+  if (!attempt) throw new Error('Percubaan kuiz tidak dijumpai')
 
   // Mark as submitted
-  const { data: updated, error: updateError } = await supabase
-    .from('quiz_attempts')
-    .update({
+  await prisma.quizAttempt.update({
+    where: { id: attemptId },
+    data: {
       answers,
-      submitted_at: new Date().toISOString(),
+      submitted_at: new Date(),
       status: 'submitted',
-    })
-    .eq('id', attemptId)
-    .select()
-    .single()
-
-  if (updateError) throw updateError
+    },
+  })
 
   // Fetch questions for grading
-  const { data: questions, error: questionsError } = await supabase
-    .from('quiz_questions')
-    .select('*')
-    .eq('quiz_id', attempt.quiz_id)
-    .order('order_index', { ascending: true })
+  const questions = await prisma.quizQuestion.findMany({
+    where: { quiz_id: attempt.quiz_id },
+    orderBy: { order_index: 'asc' },
+  })
 
-  if (questionsError) throw questionsError
-
-  await autoGrade(attemptId, questions as QuizQuestion[], answers)
+  await autoGrade(
+    attemptId,
+    questions.map(serializeQuestion),
+    answers
+  )
 
   // Return the latest state
-  const { data: final, error: finalError } = await supabase
-    .from('quiz_attempts')
-    .select('*')
-    .eq('id', attemptId)
-    .single()
+  const final = await prisma.quizAttempt.findUnique({ where: { id: attemptId } })
+  if (!final) throw new Error('Percubaan kuiz tidak dijumpai')
+  return serializeAttempt(final)
+}
 
-  if (finalError) throw finalError
-  return final as QuizAttempt
+function serializeAttempt(row: Record<string, unknown>): QuizAttempt {
+  return {
+    ...(row as unknown as QuizAttempt),
+    started_at: (row.started_at as Date).toISOString(),
+    submitted_at: row.submitted_at ? (row.submitted_at as Date).toISOString() : null,
+    score: row.score !== null && row.score !== undefined ? Number(row.score) : null,
+    answers: (row.answers as Record<string, string>) ?? null,
+  }
+}
+
+function serializeQuestion(row: Record<string, unknown>): QuizQuestion {
+  return {
+    ...(row as unknown as QuizQuestion),
+    options: row.options as string[] | null,
+  }
 }

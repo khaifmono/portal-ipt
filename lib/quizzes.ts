@@ -1,29 +1,17 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import type { Quiz, QuizQuestion } from '@/lib/types'
 
 export async function getQuizzesByWeek(weekId: string): Promise<Quiz[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('quizzes')
-    .select('*')
-    .eq('week_id', weekId)
-    .order('created_at', { ascending: true })
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.quiz.findMany({
+    where: { week_id: weekId },
+    orderBy: { created_at: 'asc' },
+  })
+  return data.map(serializeQuiz)
 }
 
 export async function getQuizById(quizId: string): Promise<Quiz | null> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('quizzes')
-    .select('*')
-    .eq('id', quizId)
-    .single()
-
-  if (error?.code === 'PGRST116') return null
-  if (error) throw error
-  return data
+  const data = await prisma.quiz.findUnique({ where: { id: quizId } })
+  return data ? serializeQuiz(data) : null
 }
 
 export async function createQuiz(params: {
@@ -43,10 +31,8 @@ export async function createQuiz(params: {
     throw new Error('timerMinutes mesti integer positif')
   }
 
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('quizzes')
-    .insert({
+  const data = await prisma.quiz.create({
+    data: {
       week_id: params.weekId,
       course_id: params.courseId,
       ipt_id: params.iptId,
@@ -55,12 +41,9 @@ export async function createQuiz(params: {
       timer_minutes: params.timerMinutes ?? null,
       randomize_questions: params.randomizeQuestions ?? false,
       created_by: params.createdBy,
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+    },
+  })
+  return serializeQuiz(data)
 }
 
 export async function addQuestion(params: {
@@ -80,36 +63,27 @@ export async function addQuestion(params: {
     throw new Error('Soalan pilihan berganda memerlukan sekurang-kurangnya 2 pilihan')
   }
 
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('quiz_questions')
-    .insert({
+  const data = await prisma.quizQuestion.create({
+    data: {
       quiz_id: params.quizId,
       ipt_id: params.iptId,
       question_text: params.questionText,
       question_type: params.questionType,
-      options: params.options ?? null,
+      options: params.options ?? undefined,
       correct_answer: params.correctAnswer ?? null,
       marks: params.marks ?? 1,
       order_index: params.orderIndex,
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+    },
+  })
+  return serializeQuestion(data)
 }
 
 export async function getQuestionsByQuiz(quizId: string): Promise<QuizQuestion[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('quiz_questions')
-    .select('*')
-    .eq('quiz_id', quizId)
-    .order('order_index', { ascending: true })
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.quizQuestion.findMany({
+    where: { quiz_id: quizId },
+    orderBy: { order_index: 'asc' },
+  })
+  return data.map(serializeQuestion)
 }
 
 /**
@@ -122,4 +96,15 @@ export function shuffleQuestions(questions: QuizQuestion[]): QuizQuestion[] {
     ;[arr[i], arr[j]] = [arr[j], arr[i]]
   }
   return arr
+}
+
+function serializeQuiz(row: Record<string, unknown>): Quiz {
+  return { ...(row as unknown as Quiz), created_at: (row.created_at as Date).toISOString() }
+}
+
+function serializeQuestion(row: Record<string, unknown>): QuizQuestion {
+  return {
+    ...(row as unknown as QuizQuestion),
+    options: row.options as string[] | null,
+  }
 }

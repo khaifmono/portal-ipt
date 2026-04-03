@@ -1,29 +1,17 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import type { Course, CourseWeek } from '@/lib/types'
 
 export async function getCoursesByIpt(iptId: string): Promise<Course[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('ipt_id', iptId)
-    .order('created_at', { ascending: false })
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.course.findMany({
+    where: { ipt_id: iptId },
+    orderBy: { created_at: 'desc' },
+  })
+  return data.map(serialize)
 }
 
 export async function getCourseById(courseId: string): Promise<Course | null> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('id', courseId)
-    .single()
-
-  if (error?.code === 'PGRST116') return null
-  if (error) throw error
-  return data
+  const data = await prisma.course.findUnique({ where: { id: courseId } })
+  return data ? serialize(data) : null
 }
 
 export async function createCourse(params: {
@@ -34,32 +22,23 @@ export async function createCourse(params: {
 }): Promise<Course> {
   if (!params.iptId) throw new Error('ipt_id diperlukan untuk mencipta kursus')
 
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('courses')
-    .insert({
+  const data = await prisma.course.create({
+    data: {
       ipt_id: params.iptId,
       title: params.title,
       description: params.description ?? null,
       created_by: params.createdBy,
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+    },
+  })
+  return serialize(data)
 }
 
 export async function getWeeksByCourse(courseId: string): Promise<CourseWeek[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('week_number')
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.courseWeek.findMany({
+    where: { course_id: courseId },
+    orderBy: { week_number: 'asc' },
+  })
+  return data.map(serializeWeek)
 }
 
 export async function addWeekToCourse(params: {
@@ -68,32 +47,30 @@ export async function addWeekToCourse(params: {
   title: string
   description?: string
 }): Promise<CourseWeek> {
-  const supabase = createAdminClient()
+  const lastWeek = await prisma.courseWeek.findFirst({
+    where: { course_id: params.courseId },
+    orderBy: { week_number: 'desc' },
+    select: { week_number: true },
+  })
 
-  // Determine next week number
-  const { data: existing, error: countError } = await supabase
-    .from('course_weeks')
-    .select('week_number')
-    .eq('course_id', params.courseId)
-    .order('week_number', { ascending: false })
-    .limit(1)
+  const nextWeekNumber = lastWeek ? lastWeek.week_number + 1 : 1
 
-  if (countError) throw countError
-
-  const nextWeekNumber = existing && existing.length > 0 ? existing[0].week_number + 1 : 1
-
-  const { data, error } = await supabase
-    .from('course_weeks')
-    .insert({
+  const data = await prisma.courseWeek.create({
+    data: {
       course_id: params.courseId,
       ipt_id: params.iptId,
       week_number: nextWeekNumber,
       title: params.title,
       description: params.description ?? null,
-    })
-    .select()
-    .single()
+    },
+  })
+  return serializeWeek(data)
+}
 
-  if (error) throw error
-  return data
+function serialize(row: Record<string, unknown>): Course {
+  return { ...(row as unknown as Course), created_at: (row.created_at as Date).toISOString() }
+}
+
+function serializeWeek(row: Record<string, unknown>): CourseWeek {
+  return { ...(row as unknown as CourseWeek), created_at: (row.created_at as Date).toISOString() }
 }

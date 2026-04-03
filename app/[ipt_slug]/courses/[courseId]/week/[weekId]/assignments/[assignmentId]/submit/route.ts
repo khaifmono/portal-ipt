@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { getIptBySlug } from '@/lib/ipt'
 import { createSubmission } from '@/lib/submissions'
-import { createClient } from '@/lib/supabase/server'
+import { saveFile } from '@/lib/storage'
 
 export async function POST(
   request: NextRequest,
@@ -47,13 +47,11 @@ export async function POST(
       const fileName = fileVal instanceof File ? fileVal.name : 'upload'
       const storagePath = `assignment-submissions/${assignmentId}/${user.id}/${fileName}`
 
-      const supabase = await createClient()
-      const { error: uploadError } = await supabase.storage
-        .from('course-files')
-        .upload(storagePath, fileVal, { upsert: true })
-
-      if (uploadError) {
-        return NextResponse.json({ error: uploadError.message }, { status: 500 })
+      try {
+        await saveFile(storagePath, fileVal)
+      } catch (uploadError) {
+        const message = uploadError instanceof Error ? uploadError.message : 'Gagal memuat naik fail'
+        return NextResponse.json({ error: message }, { status: 500 })
       }
 
       filePath = storagePath

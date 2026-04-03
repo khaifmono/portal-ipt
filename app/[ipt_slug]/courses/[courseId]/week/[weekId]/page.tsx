@@ -2,9 +2,8 @@ import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
 import { getAssignmentsByWeek } from '@/lib/assignments'
 import { getQuizzesByWeek } from '@/lib/quizzes'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { getUser } from '@/lib/auth'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -17,30 +16,20 @@ export default async function WeekPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = createAdminClient()
-  const { data: week, error } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('id', weekId)
-    .eq('course_id', courseId)
-    .single()
+  const week = await prisma.courseWeek.findFirst({
+    where: { id: weekId, course_id: courseId },
+  })
 
-  if (error || !week) notFound()
+  if (!week) notFound()
 
-  const { data: dbUser } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .eq('ipt_id', ipt.id)
-    .single()
-
-  const role = dbUser?.role ?? (user.user_metadata?.role as string | undefined) ?? 'ahli'
+  const role = user.role ?? 'ahli'
   const isStaff = ['admin', 'super_admin', 'tenaga_pengajar'].includes(role)
 
   const [assignments, quizzes] = await Promise.all([

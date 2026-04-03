@@ -1,8 +1,6 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { NewSessionForm } from './NewSessionForm'
@@ -16,17 +14,11 @@ export default async function NewAttendanceSessionPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const supabase = createAdminClient()
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || !['admin', 'super_admin', 'tenaga_pengajar'].includes(profile.role)) {
+  if (!['admin', 'super_admin', 'tenaga_pengajar'].includes(user.role)) {
     redirect(`/${ipt_slug}/courses/${courseId}/attendance`)
   }
 

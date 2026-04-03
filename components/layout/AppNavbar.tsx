@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getUser } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { NavLink } from './NavLink'
 
 interface AppNavbarProps {
   iptSlug: string
@@ -10,22 +10,12 @@ interface AppNavbarProps {
 }
 
 export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNavbarProps) {
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
 
-  let profile: { nama: string; role: string } | null = null
-  if (user) {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('users')
-      .select('nama, role')
-      .eq('id', user.id)
-      .single()
-    profile = data
-  }
-
-  const role = profile?.role ?? (user?.user_metadata?.role as string | undefined)
+  const role = user?.role
   const isAdmin = role === 'admin' || role === 'super_admin'
-  const initial = (profile?.nama ?? user?.email ?? 'P')[0].toUpperCase()
+  const initial = (user?.nama ?? 'P')[0].toUpperCase()
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:px-8 gap-2">
@@ -82,7 +72,7 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
                 <span className="text-white text-xs font-bold">{initial}</span>
               </div>
               <span className="hidden md:block text-sm font-medium text-gray-700">
-                {profile?.nama ?? 'Pengguna'}
+                {user.nama ?? 'Pengguna'}
               </span>
             </div>
             <div className="w-px h-4 bg-gray-200" />
@@ -102,16 +92,5 @@ export default async function AppNavbar({ iptSlug, iptName, iptLogoUrl }: AppNav
         )}
       </div>
     </nav>
-  )
-}
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="px-3 py-1.5 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-    >
-      {children}
-    </Link>
   )
 }

@@ -3,15 +3,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { loginSchema, type LoginInput } from '@/lib/auth-schema'
-import { createClient } from '@/lib/supabase/client'
 
 interface LoginFormProps {
   iptSlug: string
-}
-
-function toAuthEmail(icNumber: string, iptSlug: string): string {
-  return `${icNumber}@${iptSlug}.psscm`
 }
 
 export function LoginForm({ iptSlug }: LoginFormProps) {
@@ -26,15 +22,14 @@ export function LoginForm({ iptSlug }: LoginFormProps) {
   })
 
   async function onSubmit(values: LoginInput) {
-    const supabase = createClient()
-    const email = toAuthEmail(values.ic_number, iptSlug)
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
+    const result = await signIn('credentials', {
+      ic_number: values.ic_number,
       password: values.password,
+      ipt_slug: iptSlug,
+      redirect: false,
     })
 
-    if (error) {
+    if (result?.error) {
       setError('root', { message: 'Nombor IC atau kata laluan tidak sah.' })
       return
     }

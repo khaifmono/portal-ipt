@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { createQuiz, addQuestion } from '@/lib/quizzes'
 import { getUser } from '@/lib/auth'
 import { getIptBySlug } from '@/lib/ipt'
@@ -22,20 +20,8 @@ export async function POST(
       return NextResponse.json({ error: 'IPT tidak dijumpai' }, { status: 404 })
     }
 
-    // Check role
-    const supabase = createAdminClient()
-    const { data: dbUser, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .eq('ipt_id', ipt.id)
-      .single()
-
-    if (userError || !dbUser) {
-      return NextResponse.json({ error: 'Pengguna tidak dijumpai' }, { status: 404 })
-    }
-
-    if (!['admin', 'super_admin', 'tenaga_pengajar'].includes(dbUser.role)) {
+    // Check role from session
+    if (!['admin', 'super_admin', 'tenaga_pengajar'].includes(user.role)) {
       return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
     }
 

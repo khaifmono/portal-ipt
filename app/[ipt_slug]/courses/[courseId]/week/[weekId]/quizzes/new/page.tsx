@@ -1,8 +1,7 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import NewQuizForm from './NewQuizForm'
@@ -17,34 +16,22 @@ export default async function NewQuizPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = createAdminClient()
+  const week = await prisma.courseWeek.findFirst({
+    where: { id: weekId, course_id: courseId },
+  })
 
-  const { data: week, error: weekError } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('id', weekId)
-    .eq('course_id', courseId)
-    .single()
-
-  if (weekError || !week) notFound()
+  if (!week) notFound()
 
   // Role check: only admin / tenaga_pengajar
-  const { data: dbUser, error: userError } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .eq('ipt_id', ipt.id)
-    .single()
-
-  if (userError || !dbUser) redirect(`/${ipt_slug}/login`)
-
-  if (!['admin', 'super_admin', 'tenaga_pengajar'].includes(dbUser.role)) {
+  const role = user.role
+  if (!role || !['admin', 'super_admin', 'tenaga_pengajar'].includes(role)) {
     redirect(`/${ipt_slug}/courses/${courseId}/week/${weekId}`)
   }
 

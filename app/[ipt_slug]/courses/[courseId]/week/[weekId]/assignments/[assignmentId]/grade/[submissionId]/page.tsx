@@ -2,9 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/db'
 import GradeForm from './GradeForm'
 
 export default async function GradeSubmissionPage({
@@ -23,10 +22,11 @@ export default async function GradeSubmissionPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const role = user.user_metadata?.role as string | undefined
+  const role = user.role
   if (!role || !['admin', 'super_admin', 'tenaga_pengajar'].includes(role)) {
     redirect(`/${ipt_slug}/dashboard`)
   }
@@ -34,34 +34,23 @@ export default async function GradeSubmissionPage({
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = createAdminClient()
+  const week = await prisma.courseWeek.findFirst({
+    where: { id: weekId, course_id: courseId },
+  })
 
-  const { data: week, error: weekError } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('id', weekId)
-    .eq('course_id', courseId)
-    .single()
+  if (!week) notFound()
 
-  if (weekError || !week) notFound()
+  const assignment = await prisma.assignment.findFirst({
+    where: { id: assignmentId, ipt_id: ipt.id },
+  })
 
-  const { data: assignment, error: asgError } = await supabase
-    .from('assignments')
-    .select('*')
-    .eq('id', assignmentId)
-    .eq('ipt_id', ipt.id)
-    .single()
+  if (!assignment) notFound()
 
-  if (asgError || !assignment) notFound()
+  const submission = await prisma.submission.findFirst({
+    where: { id: submissionId, assignment_id: assignmentId },
+  })
 
-  const { data: submission, error: subError } = await supabase
-    .from('submissions')
-    .select('*')
-    .eq('id', submissionId)
-    .eq('assignment_id', assignmentId)
-    .single()
-
-  if (subError || !submission) notFound()
+  if (!submission) notFound()
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
@@ -125,7 +114,7 @@ export default async function GradeSubmissionPage({
             assignmentId={assignmentId}
             submissionId={submissionId}
             maxScore={assignment.max_score}
-            currentGrade={submission.grade}
+            currentGrade={submission.grade !== null ? Number(submission.grade) : null}
             currentFeedback={submission.feedback}
           />
         </div>

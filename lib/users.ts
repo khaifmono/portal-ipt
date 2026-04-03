@@ -1,16 +1,13 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import bcrypt from 'bcrypt'
+import { prisma } from '@/lib/db'
 import type { User } from '@/lib/types'
 
 export async function getUsersByIpt(iptId: string): Promise<User[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('ipt_id', iptId)
-    .order('nama')
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.user.findMany({
+    where: { ipt_id: iptId },
+    orderBy: { nama: 'asc' },
+  })
+  return data.map(serializeUser)
 }
 
 export async function createUser(params: {
@@ -22,35 +19,26 @@ export async function createUser(params: {
   password: string
   iptSlug: string
 }): Promise<User> {
-  const supabase = createAdminClient()
+  const passwordHash = await bcrypt.hash(params.password, 10)
 
-  // Create auth user with synthetic email
-  const email = `${params.icNumber}@${params.iptSlug}.psscm`
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email,
-    password: params.password,
-    email_confirm: true,
-    user_metadata: {
-      ipt_id: params.iptId,
-      role: params.role,
-    },
-  })
-
-  if (authError) throw authError
-
-  const { data, error } = await supabase
-    .from('users')
-    .insert({
-      id: authData.user.id,
+  const data = await prisma.user.create({
+    data: {
       ipt_id: params.iptId,
       ic_number: params.icNumber,
       nama: params.nama,
       role: params.role,
       kelas_latihan: params.kelasLatihan ?? null,
-    })
-    .select()
-    .single()
+      password_hash: passwordHash,
+    },
+  })
 
-  if (error) throw error
-  return data
+  return serializeUser(data)
+}
+
+function serializeUser(row: Record<string, unknown>): User {
+  const { password_hash: _, ...rest } = row as Record<string, unknown> & { password_hash: string }
+  return {
+    ...(rest as unknown as User),
+    created_at: (row.created_at as Date).toISOString(),
+  }
 }

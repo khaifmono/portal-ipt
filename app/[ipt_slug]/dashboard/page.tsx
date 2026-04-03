@@ -1,7 +1,5 @@
 import { getIptBySlug } from '@/lib/ipt'
-import { getUser } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
 import { getCoursesByIpt } from '@/lib/courses'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -24,19 +22,13 @@ export default async function DashboardPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const supabase = createAdminClient()
-  const { data: profile } = await supabase
-    .from('users')
-    .select('nama, role, kelas_latihan')
-    .eq('id', user.id)
-    .single()
-
-  const role = profile?.role ?? user.user_metadata?.role
+  const role = user.role
   const isAdmin = role === 'admin' || role === 'super_admin'
-  const nama = profile?.nama ?? user.email ?? 'Pengguna'
+  const nama = user.nama ?? 'Pengguna'
 
   const courses = await getCoursesByIpt(ipt.id)
 

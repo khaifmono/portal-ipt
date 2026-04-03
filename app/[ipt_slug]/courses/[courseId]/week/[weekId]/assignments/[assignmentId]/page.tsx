@@ -2,12 +2,10 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
-import { getAssignmentsByWeek } from '@/lib/assignments'
+import { auth } from '@/auth'
 import { getSubmissionsByAssignment, getSubmissionByUser } from '@/lib/submissions'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import type { Assignment, Submission } from '@/lib/types'
+import { prisma } from '@/lib/db'
+import type { Submission } from '@/lib/types'
 import SubmissionForm from './SubmissionForm'
 
 export default async function AssignmentPage({
@@ -25,34 +23,27 @@ export default async function AssignmentPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = createAdminClient()
-  const { data: week, error: weekError } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('id', weekId)
-    .eq('course_id', courseId)
-    .single()
+  const week = await prisma.courseWeek.findFirst({
+    where: { id: weekId, course_id: courseId },
+  })
 
-  if (weekError || !week) notFound()
+  if (!week) notFound()
 
   // Fetch assignment
-  const { data: assignment, error: asgError } = await supabase
-    .from('assignments')
-    .select('*')
-    .eq('id', assignmentId)
-    .eq('week_id', weekId)
-    .eq('ipt_id', ipt.id)
-    .single()
+  const assignment = await prisma.assignment.findFirst({
+    where: { id: assignmentId, week_id: weekId, ipt_id: ipt.id },
+  })
 
-  if (asgError || !assignment) notFound()
+  if (!assignment) notFound()
 
-  const role = user.user_metadata?.role as string | undefined
+  const role = user.role
   const isStaff = role && ['admin', 'super_admin', 'tenaga_pengajar'].includes(role)
 
   const isPastDue = assignment.due_date ? new Date() > new Date(assignment.due_date) : false

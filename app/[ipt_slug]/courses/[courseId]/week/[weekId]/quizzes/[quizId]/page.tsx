@@ -1,9 +1,8 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
+import { auth } from '@/auth'
 import { getQuizById, getQuestionsByQuiz } from '@/lib/quizzes'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import QuizPlayer from './QuizPlayer'
@@ -23,44 +22,30 @@ export default async function QuizPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = createAdminClient()
+  const week = await prisma.courseWeek.findFirst({
+    where: { id: weekId, course_id: courseId },
+  })
 
-  const { data: week, error: weekError } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('id', weekId)
-    .eq('course_id', courseId)
-    .single()
+  if (!week) notFound()
 
-  if (weekError || !week) notFound()
-
-  const { data: dbUser, error: userError } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .eq('ipt_id', ipt.id)
-    .single()
-
-  if (userError || !dbUser) redirect(`/${ipt_slug}/login`)
+  const role = user.role ?? 'ahli'
 
   const quiz = await getQuizById(quizId)
   if (!quiz || quiz.ipt_id !== ipt.id) notFound()
 
   // Check for existing submitted attempt
-  const { data: existingAttempt } = await supabase
-    .from('quiz_attempts')
-    .select('*')
-    .eq('quiz_id', quizId)
-    .eq('user_id', user.id)
-    .single()
+  const existingAttempt = await prisma.quizAttempt.findFirst({
+    where: { quiz_id: quizId, user_id: user.id },
+  })
 
-  const isAhli = dbUser.role === 'ahli'
+  const isAhli = role === 'ahli'
 
   // If already submitted, show score
   if (existingAttempt?.status === 'submitted') {
@@ -80,7 +65,7 @@ export default async function QuizPage({
             {existingAttempt.score !== null ? (
               <div>
                 <p className="text-gray-700 text-sm mb-1">Markah anda</p>
-                <p className="text-4xl font-bold text-blue-600">{existingAttempt.score}</p>
+                <p className="text-4xl font-bold text-blue-600">{Number(existingAttempt.score)}</p>
               </div>
             ) : (
               <p className="text-gray-600 text-sm">
@@ -95,31 +80,20 @@ export default async function QuizPage({
 
   // For ahli: start attempt and serve the quiz player
   if (isAhli) {
-    // Start or retrieve in-progress attempt via server action
-    const { data: attempt, error: attemptError } = await supabase
-      .from('quiz_attempts')
-      .upsert(
-        {
+    // Start or retrieve in-progress attempt
+    let activeAttempt = await prisma.quizAttempt.findFirst({
+      where: { quiz_id: quizId, user_id: user.id },
+    })
+
+    if (!activeAttempt) {
+      activeAttempt = await prisma.quizAttempt.create({
+        data: {
           quiz_id: quizId,
           user_id: user.id,
           ipt_id: ipt.id,
           status: 'in_progress',
         },
-        { onConflict: 'quiz_id,user_id', ignoreDuplicates: true }
-      )
-      .select()
-      .single()
-
-    // If upsert returned nothing (was a duplicate), fetch the existing
-    let activeAttempt = attempt
-    if (!activeAttempt || attemptError) {
-      const { data: existing } = await supabase
-        .from('quiz_attempts')
-        .select('*')
-        .eq('quiz_id', quizId)
-        .eq('user_id', user.id)
-        .single()
-      activeAttempt = existing
+      })
     }
 
     if (!activeAttempt) {

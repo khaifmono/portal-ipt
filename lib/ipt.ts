@@ -1,32 +1,24 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import type { Ipt } from '@/lib/types'
 
 export async function getAllIpts(): Promise<Ipt[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('ipts')
-    .select('*')
-    .eq('is_active', true)
-    .order('name')
-
-  if (error) {
-    // Silently return empty list before migrations are applied (table not found = code 42P01)
-    if (error.code !== '42P01') console.warn('[getAllIpts]', error.message)
-    return []
-  }
-  return data ?? []
+  const data = await prisma.ipt.findMany({
+    where: { is_active: true },
+    orderBy: { name: 'asc' },
+  })
+  return data.map(serializeIpt)
 }
 
 export async function getIptBySlug(slug: string): Promise<Ipt | null> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('ipts')
-    .select('*')
-    .eq('slug', slug)
-    .eq('is_active', true)
-    .single()
+  const data = await prisma.ipt.findFirst({
+    where: { slug, is_active: true },
+  })
+  return data ? serializeIpt(data) : null
+}
 
-  if (error?.code === 'PGRST116') return null // not found
-  if (error) throw error
-  return data
+function serializeIpt(row: Record<string, unknown>): Ipt {
+  return {
+    ...(row as unknown as Ipt),
+    created_at: (row.created_at as Date).toISOString(),
+  }
 }

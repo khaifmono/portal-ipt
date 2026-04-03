@@ -1,9 +1,7 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
+import { auth } from '@/auth'
 import { getSessionsByCourse, getUserAttendanceHistory } from '@/lib/attendance'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -16,22 +14,14 @@ export default async function AttendancePage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
-
-  const supabase = createAdminClient()
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile) redirect(`/${ipt_slug}/login`)
 
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const isStaff = ['admin', 'super_admin', 'tenaga_pengajar'].includes(profile.role)
+  const isStaff = ['admin', 'super_admin', 'tenaga_pengajar'].includes(user.role)
 
   if (isStaff) {
     const sessions = await getSessionsByCourse(courseId)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth'
+import { requireRole } from '@/lib/auth-helpers'
 import { getIptBySlug } from '@/lib/ipt'
 import { assignmentSchema, createAssignment } from '@/lib/assignments'
 
@@ -9,13 +9,10 @@ export async function POST(
 ) {
   const { ipt_slug, courseId, weekId } = await params
 
-  const user = await getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Tidak dibenarkan' }, { status: 401 })
-  }
-
-  const role = user.user_metadata?.role as string | undefined
-  if (!role || !['admin', 'super_admin', 'tenaga_pengajar'].includes(role)) {
+  let user
+  try {
+    user = await requireRole(['admin', 'super_admin', 'tenaga_pengajar'])
+  } catch {
     return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
   }
 

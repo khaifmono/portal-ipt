@@ -2,9 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/db'
 import NewAssignmentForm from './NewAssignmentForm'
 
 export default async function NewAssignmentPage({
@@ -17,10 +16,11 @@ export default async function NewAssignmentPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const role = user.user_metadata?.role as string | undefined
+  const role = user.role
   if (!role || !['admin', 'super_admin', 'tenaga_pengajar'].includes(role)) {
     redirect(`/${ipt_slug}/dashboard`)
   }
@@ -28,15 +28,11 @@ export default async function NewAssignmentPage({
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const supabase = createAdminClient()
-  const { data: week, error } = await supabase
-    .from('course_weeks')
-    .select('*')
-    .eq('id', weekId)
-    .eq('course_id', courseId)
-    .single()
+  const week = await prisma.courseWeek.findFirst({
+    where: { id: weekId, course_id: courseId },
+  })
 
-  if (error || !week) notFound()
+  if (!week) notFound()
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">

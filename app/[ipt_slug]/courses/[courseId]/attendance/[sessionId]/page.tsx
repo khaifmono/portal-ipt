@@ -1,9 +1,8 @@
 import { getIptBySlug } from '@/lib/ipt'
 import { getCourseById } from '@/lib/courses'
-import { getUser } from '@/lib/auth'
+import { auth } from '@/auth'
 import { getSessionById, getAttendanceReport } from '@/lib/attendance'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { AttendanceMarker } from './AttendanceMarker'
@@ -17,46 +16,35 @@ export default async function SessionDetailPage({
   const ipt = await getIptBySlug(ipt_slug)
   if (!ipt) notFound()
 
-  const user = await getUser()
+  const session = await auth()
+  const user = session?.user
   if (!user) redirect(`/${ipt_slug}/login`)
 
-  const supabase = createAdminClient()
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || !['admin', 'super_admin', 'tenaga_pengajar'].includes(profile.role)) {
+  if (!['admin', 'super_admin', 'tenaga_pengajar'].includes(user.role)) {
     redirect(`/${ipt_slug}/courses/${courseId}/attendance`)
   }
 
   const course = await getCourseById(courseId)
   if (!course || course.ipt_id !== ipt.id) notFound()
 
-  const session = await getSessionById(sessionId)
-  if (!session || session.course_id !== courseId) notFound()
+  const attendanceSession = await getSessionById(sessionId)
+  if (!attendanceSession || attendanceSession.course_id !== courseId) notFound()
 
   // Get enrolled users for this course
-  const { data: enrollments } = await supabase
-    .from('enrollments')
-    .select('user_id, users(id, nama, ic_number)')
-    .eq('course_id', courseId)
-    .eq('ipt_id', ipt.id)
+  const enrollments = await prisma.enrollment.findMany({
+    where: { course_id: courseId, ipt_id: ipt.id },
+    include: { user: { select: { id: true, nama: true, ic_number: true } } },
+  })
 
   const records = await getAttendanceReport(sessionId)
   const recordMap = new Map(records.map((r) => [r.user_id, r]))
 
-  const enrolledUsers = (enrollments ?? []).map((e) => {
-    const uArr = e.users as unknown as { id: string; nama: string; ic_number: string }[] | null
-    const u = Array.isArray(uArr) ? uArr[0] ?? null : null
-    return {
-      userId: e.user_id,
-      nama: u?.nama ?? 'Tanpa Nama',
-      icNumber: u?.ic_number ?? '',
-      currentStatus: recordMap.get(e.user_id)?.status ?? null,
-    }
-  })
+  const enrolledUsers = enrollments.map((e) => ({
+    userId: e.user_id,
+    nama: e.user.nama,
+    icNumber: e.user.ic_number,
+    currentStatus: recordMap.get(e.user_id)?.status ?? null,
+  }))
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
@@ -67,9 +55,9 @@ export default async function SessionDetailPage({
         >
           ← Kembali ke Senarai Sesi
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{session.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">{attendanceSession.title}</h1>
         <p className="text-gray-500 text-sm mb-6">
-          {new Date(session.session_date).toLocaleDateString('ms-MY', {
+          {new Date(attendanceSession.session_date).toLocaleDateString('ms-MY', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',

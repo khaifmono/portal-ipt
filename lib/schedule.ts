@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/db'
 import type { Schedule } from '@/lib/types'
 
 export async function createSchedule(params: {
@@ -19,46 +19,42 @@ export async function createSchedule(params: {
     throw new Error('Masa mula mesti sebelum masa tamat')
   }
 
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('schedules')
-    .insert({
+  const data = await prisma.schedule.create({
+    data: {
       course_id: params.courseId,
       ipt_id: params.iptId,
       title: params.title,
-      start_time: params.startTime,
-      end_time: params.endTime,
+      start_time: start,
+      end_time: end,
       location: params.location ?? null,
       recurring: params.recurring ?? false,
       created_by: params.createdBy,
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+    },
+  })
+  return serialize(data)
 }
 
 export async function getSchedulesByCourse(courseId: string): Promise<Schedule[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('schedules')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('start_time', { ascending: true })
-
-  if (error) throw error
-  return data ?? []
+  const data = await prisma.schedule.findMany({
+    where: { course_id: courseId },
+    orderBy: { start_time: 'asc' },
+  })
+  return data.map(serialize)
 }
 
 export async function getSchedulesByIpt(iptId: string): Promise<Schedule[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('schedules')
-    .select('*')
-    .eq('ipt_id', iptId)
-    .order('start_time', { ascending: true })
+  const data = await prisma.schedule.findMany({
+    where: { ipt_id: iptId },
+    orderBy: { start_time: 'asc' },
+  })
+  return data.map(serialize)
+}
 
-  if (error) throw error
-  return data ?? []
+function serialize(row: Record<string, unknown>): Schedule {
+  return {
+    ...(row as unknown as Schedule),
+    start_time: (row.start_time as Date).toISOString(),
+    end_time: (row.end_time as Date).toISOString(),
+    created_at: (row.created_at as Date).toISOString(),
+  }
 }
