@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth-helpers'
 import { getIptBySlug } from '@/lib/ipt'
 import { createAnnouncement } from '@/lib/announcements'
+import { notifyEnrolledUsers } from '@/lib/notifications'
 
 export async function POST(
   request: NextRequest,
@@ -48,6 +49,14 @@ export async function POST(
     isPinned: isPinned ?? false,
     createdBy: user.id,
   })
+
+  // Notify all enrolled users about the new announcement
+  notifyEnrolledUsers(
+    courseId,
+    `Pengumuman Baru: ${title.trim()}`,
+    content.trim().slice(0, 200),
+    `/${ipt_slug}/courses/${courseId}`,
+  ).catch(() => {})
 
   return NextResponse.json(announcement, { status: 201 })
 }

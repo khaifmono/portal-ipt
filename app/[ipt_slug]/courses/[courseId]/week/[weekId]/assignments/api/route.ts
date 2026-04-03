@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth-helpers'
 import { getIptBySlug } from '@/lib/ipt'
 import { assignmentSchema, createAssignment } from '@/lib/assignments'
+import { notifyEnrolledUsers } from '@/lib/notifications'
 
 export async function POST(
   request: NextRequest,
@@ -53,6 +54,14 @@ export async function POST(
     maxScore,
     createdBy: user.id,
   })
+
+  // Notify enrolled students about the new assignment
+  notifyEnrolledUsers(
+    courseId,
+    `Tugasan Baru: ${title}`,
+    description ?? 'Tugasan baru telah ditambah.',
+    `/${ipt_slug}/courses/${courseId}/week/${weekId}`,
+  ).catch(() => {})
 
   return NextResponse.json(assignment, { status: 201 })
 }

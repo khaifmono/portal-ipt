@@ -38,12 +38,20 @@ export default async function UsersPage({
           <h1 className="text-2xl font-bold text-gray-900">Pengurusan Pengguna</h1>
           <p className="text-sm text-gray-500 mt-0.5">{ipt.name} · {users.length} pengguna</p>
         </div>
-        <Link
-          href={`/${ipt_slug}/admin/users/new`}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
-        >
-          + Tambah Pengguna
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/${ipt_slug}/admin/users/import`}
+            className="rounded-lg bg-white border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            Import CSV
+          </Link>
+          <Link
+            href={`/${ipt_slug}/admin/users/new`}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            + Tambah Pengguna
+          </Link>
+        </div>
       </div>
 
       {/* Table */}

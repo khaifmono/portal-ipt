@@ -3,6 +3,7 @@ import type { Role } from '@/lib/types'
 export interface CsvUserRow {
   ic_number: string
   nama: string
+  password?: string
   kelas_latihan?: string
   role?: Role
 }
@@ -23,6 +24,7 @@ export function parseCsvUsers(csvText: string): CsvParseResult {
   const headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
   const icIdx = headers.indexOf('ic_number')
   const namaIdx = headers.indexOf('nama')
+  const passwordIdx = headers.indexOf('password')
   const kelasIdx = headers.indexOf('kelas_latihan')
   const roleIdx = headers.indexOf('role')
 
@@ -57,6 +59,7 @@ export function parseCsvUsers(csvText: string): CsvParseResult {
     valid.push({
       ic_number: icNumber,
       nama,
+      password: passwordIdx !== -1 ? cols[passwordIdx] || undefined : undefined,
       kelas_latihan: kelasIdx !== -1 ? cols[kelasIdx] || undefined : undefined,
       role: roleIdx !== -1 ? (cols[roleIdx] as Role) || 'ahli' : 'ahli',
     })
