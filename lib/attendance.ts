@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { Prisma } from './generated/prisma/client'
-import type { AttendanceSession, AttendanceRecord } from '@/lib/types'
+import type { AttendanceSession, AttendanceRecord, AttendanceStatusType } from '@/lib/types'
 
 export async function createSession(params: {
   courseId: string
@@ -38,15 +38,28 @@ export async function markAttendance(params: {
   sessionId: string
   userId: string
   iptId: string
-  status: 'present' | 'absent'
+  status: AttendanceStatusType
+  remark?: string
 }): Promise<AttendanceRecord> {
   try {
-    const data = await prisma.attendanceRecord.create({
-      data: {
+    const data = await prisma.attendanceRecord.upsert({
+      where: {
+        session_id_user_id: {
+          session_id: params.sessionId,
+          user_id: params.userId,
+        },
+      },
+      update: {
+        status: params.status,
+        remark: params.remark ?? null,
+        marked_at: new Date(),
+      },
+      create: {
         session_id: params.sessionId,
         user_id: params.userId,
         ipt_id: params.iptId,
         status: params.status,
+        remark: params.remark ?? null,
       },
     })
     return serializeRecord(data)
@@ -56,6 +69,25 @@ export async function markAttendance(params: {
     }
     throw e
   }
+}
+
+export async function bulkMarkAttendance(params: {
+  sessionId: string
+  iptId: string
+  records: { userId: string; status: AttendanceStatusType; remark?: string }[]
+}): Promise<AttendanceRecord[]> {
+  const results: AttendanceRecord[] = []
+  for (const record of params.records) {
+    const result = await markAttendance({
+      sessionId: params.sessionId,
+      userId: record.userId,
+      iptId: params.iptId,
+      status: record.status,
+      remark: record.remark,
+    })
+    results.push(result)
+  }
+  return results
 }
 
 export async function getAttendanceReport(sessionId: string): Promise<AttendanceRecord[]> {
@@ -75,11 +107,44 @@ export async function getUserAttendanceHistory(
       session: { course_id: courseId },
     },
     include: { session: true },
+    orderBy: { session: { session_date: 'desc' } },
   })
 
   return data.map((row) => ({
     ...serializeRecord(row),
     session: serializeSession(row.session),
+  }))
+}
+
+export async function getCourseAttendanceSummary(courseId: string) {
+  const sessions = await prisma.attendanceSession.findMany({
+    where: { course_id: courseId },
+    include: {
+      records: {
+        include: { user: true },
+      },
+    },
+    orderBy: { session_date: 'desc' },
+  })
+
+  return sessions.map((session) => ({
+    ...serializeSession(session),
+    records: session.records.map((r) => ({
+      ...serializeRecord(r),
+      user: {
+        id: r.user.id,
+        nama: r.user.nama,
+        ic_number: r.user.ic_number,
+        kelas_latihan: r.user.kelas_latihan,
+      },
+    })),
+    stats: {
+      present: session.records.filter((r) => r.status === 'present').length,
+      absent: session.records.filter((r) => r.status === 'absent').length,
+      late: session.records.filter((r) => r.status === 'late').length,
+      excused: session.records.filter((r) => r.status === 'excused').length,
+      total: session.records.length,
+    },
   }))
 }
 

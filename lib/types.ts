@@ -121,12 +121,15 @@ export interface AttendanceSession {
   created_at: string
 }
 
+export type AttendanceStatusType = 'present' | 'absent' | 'late' | 'excused'
+
 export interface AttendanceRecord {
   id: string
   session_id: string
   user_id: string
   ipt_id: string
-  status: 'present' | 'absent'
+  status: AttendanceStatusType
+  remark: string | null
   marked_at: string
 }
 

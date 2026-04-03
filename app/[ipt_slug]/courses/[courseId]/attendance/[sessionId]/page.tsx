@@ -5,7 +5,8 @@ import { getSessionById, getAttendanceReport } from '@/lib/attendance'
 import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AttendanceMarker } from './AttendanceMarker'
+import { BulkAttendanceForm } from './BulkAttendanceForm'
+import type { AttendanceStatusType } from '@/lib/types'
 
 export default async function SessionDetailPage({
   params,
@@ -39,55 +40,87 @@ export default async function SessionDetailPage({
   const records = await getAttendanceReport(sessionId)
   const recordMap = new Map(records.map((r) => [r.user_id, r]))
 
-  const enrolledUsers = enrollments.map((e) => ({
+  const students = enrollments.map((e) => ({
     userId: e.user_id,
     nama: e.user.nama,
     icNumber: e.user.ic_number,
-    currentStatus: recordMap.get(e.user_id)?.status ?? null,
   }))
 
+  const existingRecords: Record<string, { status: AttendanceStatusType; remark: string | null }> = {}
+  for (const [userId, record] of recordMap) {
+    existingRecords[userId] = {
+      status: record.status,
+      remark: record.remark,
+    }
+  }
+
+  const formattedDate = new Date(attendanceSession.session_date).toLocaleDateString('ms-MY', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  // Count stats for existing records
+  const stats = {
+    present: records.filter((r) => r.status === 'present').length,
+    absent: records.filter((r) => r.status === 'absent').length,
+    late: records.filter((r) => r.status === 'late').length,
+    excused: records.filter((r) => r.status === 'excused').length,
+    unmarked: students.length - records.length,
+  }
+
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="max-w-5xl mx-auto">
         <Link
           href={`/${ipt_slug}/courses/${courseId}/attendance`}
-          className="text-sm text-blue-600 hover:underline mb-4 block"
+          className="text-sm text-blue-600 hover:underline mb-4 inline-block"
         >
-          ← Kembali ke Senarai Sesi
+          &larr; Kembali ke Senarai Sesi
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{attendanceSession.title}</h1>
-        <p className="text-gray-500 text-sm mb-6">
-          {new Date(attendanceSession.session_date).toLocaleDateString('ms-MY', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </p>
 
-        {enrolledUsers.length === 0 ? (
-          <p className="text-gray-500">Tiada pelajar berdaftar dalam kursus ini.</p>
+        {/* Session header */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{attendanceSession.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{formattedDate}</p>
+
+          {/* Quick stats */}
+          <div className="flex flex-wrap gap-3 mt-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">
+              P: {stats.present}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 text-red-700 px-3 py-1 text-xs font-semibold">
+              A: {stats.absent}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">
+              L: {stats.late}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-xs font-semibold">
+              E: {stats.excused}
+            </span>
+            {stats.unmarked > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 text-gray-600 px-3 py-1 text-xs font-semibold">
+                Belum ditanda: {stats.unmarked}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Marking form */}
+        {students.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <p className="text-gray-500">Tiada pelajar berdaftar dalam kursus ini.</p>
+          </div>
         ) : (
-          <ul className="space-y-3">
-            {enrolledUsers.map((eu) => (
-              <li
-                key={eu.userId}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-6 py-4"
-              >
-                <div>
-                  <div className="font-medium text-gray-900">{eu.nama}</div>
-                  <div className="text-sm text-gray-500">{eu.icNumber}</div>
-                </div>
-                <AttendanceMarker
-                  sessionId={sessionId}
-                  userId={eu.userId}
-                  iptId={ipt.id}
-                  iptSlug={ipt_slug}
-                  courseId={courseId}
-                  currentStatus={eu.currentStatus}
-                />
-              </li>
-            ))}
-          </ul>
+          <BulkAttendanceForm
+            sessionId={sessionId}
+            iptId={ipt.id}
+            iptSlug={ipt_slug}
+            courseId={courseId}
+            students={students}
+            existingRecords={existingRecords}
+          />
         )}
       </div>
     </main>

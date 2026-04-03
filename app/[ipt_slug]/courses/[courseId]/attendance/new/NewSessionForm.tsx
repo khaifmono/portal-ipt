@@ -54,53 +54,60 @@ export function NewSessionForm({ courseId, iptId, iptSlug, createdBy }: NewSessi
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      <Field label="Tajuk Sesi" error={errors.title?.message}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <div>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          Tajuk Sesi
+        </label>
         <input
+          id="title"
           type="text"
           placeholder="cth. Sesi Kehadiran Minggu 1"
           {...register('title')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
-      </Field>
+        {errors.title && (
+          <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
+        )}
+      </div>
 
-      <Field label="Tarikh Sesi" error={errors.session_date?.message}>
+      <div>
+        <label htmlFor="session_date" className="block text-sm font-medium text-gray-700 mb-1">
+          Tarikh Sesi
+        </label>
         <input
+          id="session_date"
           type="date"
           {...register('session_date')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
-      </Field>
+        {errors.session_date && (
+          <p className="mt-1 text-xs text-red-600">{errors.session_date.message}</p>
+        )}
+      </div>
 
       {errors.root && (
-        <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{errors.root.message}</p>
+        <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+          {errors.root.message}
+        </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-      >
-        {isSubmitting ? 'Mencipta...' : 'Cipta Sesi'}
-      </button>
+      <div className="flex gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {isSubmitting ? 'Mencipta...' : 'Tambah Sesi'}
+        </button>
+      </div>
     </form>
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
   )
 }
