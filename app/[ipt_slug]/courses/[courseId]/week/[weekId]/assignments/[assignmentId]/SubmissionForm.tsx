@@ -9,6 +9,8 @@ interface Props {
   weekId: string
   assignmentId: string
   assignmentType: 'file_upload' | 'text'
+  isUpdate?: boolean
+  existingText?: string
 }
 
 export default function SubmissionForm({
@@ -17,6 +19,8 @@ export default function SubmissionForm({
   weekId,
   assignmentId,
   assignmentType,
+  isUpdate = false,
+  existingText,
 }: Props) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
@@ -94,6 +98,7 @@ export default function SubmissionForm({
             ref={textRef}
             rows={6}
             required
+            defaultValue={existingText ?? ''}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Taip jawapan anda di sini..."
           />
@@ -120,7 +125,9 @@ export default function SubmissionForm({
         disabled={submitting}
         className="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {submitting ? 'Menghantar...' : 'Hantar Tugasan'}
+        {submitting
+          ? (isUpdate ? 'Mengemaskini...' : 'Menghantar...')
+          : (isUpdate ? 'Kemas Kini Penyerahan' : 'Hantar Tugasan')}
       </button>
     </form>
   )

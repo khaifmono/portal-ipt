@@ -72,6 +72,13 @@ export default async function QuizPage({
                 Markah anda sedang dinilai oleh pengajar. Sila semak semula nanti.
               </p>
             )}
+
+            <Link
+              href={`/${ipt_slug}/courses/${courseId}/week/${weekId}/quizzes/${quizId}/review`}
+              className="mt-6 inline-flex items-center rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Semak Jawapan
+            </Link>
           </div>
         </div>
       </main>

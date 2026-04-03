@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { MaterialType } from '@/lib/types'
+import MaterialAccordion from '@/components/course/MaterialAccordion'
 
 export default async function WeekPage({
   params,
@@ -93,49 +94,24 @@ export default async function WeekPage({
               const href = isFile
                 ? `/api/files/${material.file_path}`
                 : material.url ?? '#'
-              const typeBadge = materialBadge(material.type)
 
               return (
-                <div
+                <MaterialAccordion
                   key={material.id}
-                  className="flex items-center gap-4 rounded-lg border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/50 px-4 py-3.5 transition-all group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 text-base">
-                    {icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <a
-                      href={href}
-                      target={isFile ? '_self' : '_blank'}
-                      rel={isFile ? undefined : 'noopener noreferrer'}
-                      className="text-sm font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors"
-                    >
-                      {material.title}
-                    </a>
-                    {material.description && (
-                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{material.description}</p>
-                    )}
-                  </div>
-                  <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${typeBadge}`}>
-                    {materialLabel(material.type)}
-                  </span>
-                  {isStaff && (
-                    <form
-                      action={`/${ipt_slug}/courses/${courseId}/week/${weekId}/materials/${material.id}/delete`}
-                      method="POST"
-                    >
-                      <button
-                        type="submit"
-                        className="text-gray-300 hover:text-red-500 transition-colors"
-                        title="Padam"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </form>
-                  )}
-                </div>
+                  id={material.id}
+                  title={material.title}
+                  description={material.description}
+                  type={material.type}
+                  filePath={material.file_path}
+                  url={material.url}
+                  icon={icon}
+                  typeBadge={materialBadge(material.type)}
+                  typeLabel={materialLabel(material.type)}
+                  href={href}
+                  isFile={isFile}
+                  isStaff={isStaff}
+                  deleteAction={`/${ipt_slug}/courses/${courseId}/week/${weekId}/materials/${material.id}/delete`}
+                />
               )
             })}
           </div>

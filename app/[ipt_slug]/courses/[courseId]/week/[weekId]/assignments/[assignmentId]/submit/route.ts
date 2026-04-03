@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { getIptBySlug } from '@/lib/ipt'
-import { createSubmission } from '@/lib/submissions'
+import { upsertSubmission } from '@/lib/submissions'
 import { saveFile } from '@/lib/storage'
 
 export async function POST(
@@ -68,7 +68,7 @@ export async function POST(
   }
 
   try {
-    await createSubmission({
+    await upsertSubmission({
       assignmentId,
       userId: user.id,
       iptId: ipt.id,

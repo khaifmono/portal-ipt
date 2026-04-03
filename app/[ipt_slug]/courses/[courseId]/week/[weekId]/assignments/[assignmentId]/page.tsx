@@ -151,6 +151,20 @@ export default async function AssignmentPage({
             {mySubmission ? (
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">Penyerahan Anda</h2>
+
+                {/* Submission status badge */}
+                <div className="mb-3">
+                  {mySubmission.grade !== null ? (
+                    <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                      Dinilai: {mySubmission.grade}/{assignment.max_score}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                      Dihantar (belum dinilai)
+                    </span>
+                  )}
+                </div>
+
                 <p className="text-sm text-gray-500 mb-2">
                   Diserahkan:{' '}
                   {new Date(mySubmission.submitted_at).toLocaleString('ms-MY')}
@@ -172,8 +186,26 @@ export default async function AssignmentPage({
                       <p className="text-sm text-green-700 mt-1">{mySubmission.feedback}</p>
                     )}
                   </div>
+                ) : !isPastDue ? (
+                  /* Ungraded + not past due: allow resubmission */
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                      Kemas Kini Penyerahan
+                    </h3>
+                    <SubmissionForm
+                      iptSlug={ipt_slug}
+                      courseId={courseId}
+                      weekId={weekId}
+                      assignmentId={assignmentId}
+                      assignmentType={assignment.type}
+                      isUpdate
+                      existingText={mySubmission.content_text ?? undefined}
+                    />
+                  </div>
                 ) : (
-                  <p className="text-sm text-amber-600 font-medium">Belum dinilai</p>
+                  <p className="text-sm text-amber-600 font-medium mt-3">
+                    Belum dinilai. Tarikh akhir telah tamat — kemaskini tidak dibenarkan.
+                  </p>
                 )}
               </div>
             ) : isPastDue ? (
@@ -182,6 +214,12 @@ export default async function AssignmentPage({
               </p>
             ) : (
               <div>
+                {/* Status for students who haven't submitted */}
+                <div className="mb-4">
+                  <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                    Belum Dihantar
+                  </span>
+                </div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Hantar Tugasan</h2>
                 <SubmissionForm
                   iptSlug={ipt_slug}
