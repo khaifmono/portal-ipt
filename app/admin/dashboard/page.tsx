@@ -51,6 +51,12 @@ export default async function AdminDashboardPage() {
             </div>
             <span className="hidden md:block text-sm font-medium text-gray-700">{user.nama}</span>
           </div>
+          <div className="w-px h-4 bg-gray-200" />
+          <form action="/api/auth/signout" method="post">
+            <button type="submit" className="text-xs text-gray-500 hover:text-red-600 transition-colors font-medium">
+              Log Keluar
+            </button>
+          </form>
         </div>
       </nav>
 
